@@ -224,4 +224,6 @@ TODO
 * removeItem()
 * clearSelection()
 * un/select all row from header
-* some examples online 
+* some examples online : github page
+* bower inclusion
+* minification
