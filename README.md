@@ -37,7 +37,6 @@ The whole thing is controlable directly from javascript.
 
         fields:["id","first-name","last-name"],
         data  :[
-            "x",
             {"id":1,"first-name":"john","last-name":"doe"},
             {"id":2,"first-name":"unknown","last-name":"smith"},
             {"id":2,"first-name":"bob","last-name":""}
@@ -52,6 +51,10 @@ The whole thing is controlable directly from javascript.
 **Render** 
 
 ![Image](../master/screens/readme-fig1.png?raw=true)
+
+
+Manipulation of the selected rows
+---------------------------------
 
 This library allows you to check some rows by clicking them. Then you can get the selection.
 
@@ -104,11 +107,13 @@ is equivalent to
 Adding item dynamically
 -----------------------
 
-Once your datatable lives you still can add items with the method ``dt.addItem(/* one item or an array of items */);``
+Once your datatable lives you still can add items with the method 
+
+``dt.addItem(/* one item or an array of items */);``
 
 For instance you may add items selected in one table to another
 
-```
+```javascript
 
 $("#myButton").click(function(){
     
