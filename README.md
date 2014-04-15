@@ -51,7 +51,7 @@ The whole thing is controlable directly from javascript.
 
 **Render** 
 
-![Image](../blob/master/screens/readme-fig1.png?raw=true)
+![Image](../master/screens/readme-fig1.png?raw=true)
 
 This library allows you to check some rows by clicking them. Then you can get the selection.
 
@@ -80,12 +80,12 @@ dt = new dtEnhanced.table({
 
 **Render** 
 
-![Image](../blob/master/screens/readme-fig2.png?raw=true)
+![Image](../master/screens/readme-fig2.png?raw=true)
 
 
 **Ouput when click** 
 
-![Image](../blob/master/screens/readme-fig3.png?raw=true)
+![Image](../master/screens/readme-fig3.png?raw=true)
 
 
 
