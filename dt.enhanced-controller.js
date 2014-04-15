@@ -191,7 +191,7 @@ var dtEnhanced = function($){
                 return false;
             }else if(this.selectable === "single"){
                 if($(row).hasClass("dtec-row-selected")){
-                    $(row.removeClass("dtec-row-selected"));
+                    $(row).removeClass("dtec-row-selected");
                     return false;
                 }else{
                     this.$table.find(".dtec-row-selected").removeClass("dtec-row-selected");

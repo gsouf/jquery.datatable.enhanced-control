@@ -8,6 +8,7 @@
 
 
 <div id="oo"></div>
+<button id="myButton">Get Selection</button>
 
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
@@ -17,101 +18,27 @@
 
     <script type="text/javascript">
 
-var o = {"class":"aaz","name":"jj"};
-var f = new dtEnhanced.field({"class":"aaz","name":"jj"});
-var cf = new dtEnhanced.checkboxField({"class":"aaz","name":"jj"});
-
-
 dt = new dtEnhanced.table({
 
-    fields:[
-        o,
-        f,
-        cf,
-        "x",
-        "myname"
-    ],
+        fields:["x","id","first-name","last-name"],
+        data  :[
+            {"id":1,"first-name":"john","last-name":"doe"},
+            {"id":2,"first-name":"unknown","last-name":"smith"},
+            {"id":2,"first-name":"bob","last-name":""}
+        ] 
 
-    data : [
-        {
-            "jj" : "j1",
-            "myname" : "name1"
-        },
+    });
 
-        {
-            "jj" : "j2",
-            "myname" : "name2"
-        },
-        {
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-{
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-{
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-{
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-{
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-{
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-{
-            "jj" : "j3",
-            "myname" : "name3"
-        },
-
-    ],
-
-    selectable:4
-
-});
-
-dt.show("#oo");
+    dt.show("#oo"); // append the table in the element with id "mydatatable"
 
 
+    $("#myButton").click(function(){
+        console.log(dt.getSelection());    
+    });
 
 
-
-setTimeout(function(){
-    dt.addItem({
-            "jj" : "dyn",
-            "myname" : "0.1"
-        });
-
-setTimeout(function(){
-    dt.addItem([
-
-        {
-            "jj" : "dyn1",
-            "myname" : "j21"
-        },
-        {
-            "jj" : "dyn2",
-            "myname" : "j22"
-        }
-
-    ]);
-
-
-
-},1000);
-
-},1000);
     </script>
 
-
-<button onclick="console.log(dt.getSelection());" >Get</button>
 
 </body>
 
