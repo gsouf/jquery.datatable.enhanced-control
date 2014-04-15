@@ -1,0 +1,17 @@
+table.dataTable tr:hover td{
+    background: #C8E0FF;
+}
+
+table.dataTable tr.dtec-row-selected td{
+    background: #D0F5B7;
+}
+
+table.dataTable tr td>div.dtec-select-field{
+    width:16px;
+    height: 16px;
+    background: url("./images/dtec-row-unchecked.png");
+}
+
+table.dataTable tr.dtec-row-selected td>div.dtec-select-field{
+    background: url("./images/dtec-row-checked.png");
+}
