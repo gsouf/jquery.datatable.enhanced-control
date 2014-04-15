@@ -35,8 +35,6 @@ var dtEnhanced = function($){
 
 
 
-
-
 /*============== TABLE ==============*/
 
     dtEnhanced.table = function(config){
@@ -121,9 +119,48 @@ var dtEnhanced = function($){
 
         },
 
+        addItem : function(set){
+
+            if(set instanceof Array){
+                for(var i in set){
+                    this.addItem(set[i]);
+                }
+            }else{
+
+                if(this.itemsRoot)
+                    this.data[this.itemsRoot].push(set);
+                else
+                    this.data.push(set);
+
+                var renderedSet = [];
+
+                for(var i in this.fields){
+                    renderedSet.push(this.fields[i].makeBodyCol(this,set).html());
+                }
+
+                var index = this.$table.dataTable().fnAddData(renderedSet);
+
+                this.__bindRow(set, $(this.$table.dataTable().fnGetNodes(index)) );
+            }
+
+        },
+
+
         /* INTERNAL USAGE ONLY use addItem instead */
         __addRow : function(set){
             var $tr   = $("<tr/>");
+
+            for(var i in this.fields){
+                $tr.append(this.fields[i].makeBodyCol(this,set));
+            }
+            
+            this.$table.find("tbody").append($tr);
+
+            this.__bindRow(set,$tr);
+
+        },
+
+        __bindRow : function(set,$tr){
             var self  = this;
 
             // CLICK HANDLER
@@ -131,13 +168,8 @@ var dtEnhanced = function($){
                 self.rowClicked(this);
             });
 
-            for(var i in this.fields){
-                $tr.append(this.fields[i].makeBodyCol(this,set));
-            }
-
             // STORE THE SET TO FIND IT LATER
             $tr.data("dtec-set",set);
-            this.$table.find("tbody").append($tr);
 
         },
 
@@ -174,13 +206,40 @@ var dtEnhanced = function($){
             
         },
 
+        
         getItems : function(){
             return this.itemsRoot ? this.data[this.itemsRoot] : this.data;
         },
 
+        getSelectedRows : function(){
+
+            var rows = this.$table.dataTable().fnGetNodes();
+            var selRows = [];
+
+            for(var i in rows){
+                if( $(rows[i]).hasClass("dtec-row-selected") )
+                    selRows.push(rows[i]);
+            } 
+
+            return selRows;
+        },
+
+        getSelection :function(){
+            
+            var items = [];
+
+            var rows = this.getSelectedRows();
+
+            for(var i in rows){
+                items.push($(rows[i]).data("dtec-set"));
+            }
+
+            return items;
+        },
+
         show : function(elm,dtConfig){
             $(elm).append(this.$table);
-            this.$table.dataTable();
+            this.$table.dataTable(dtConfig);
         }
 
     };

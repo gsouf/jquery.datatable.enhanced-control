@@ -79,10 +79,39 @@ dt = new dtEnhanced.table({
 
 dt.show("#oo");
 
-console.log(dt.fields);
 
+
+
+
+setTimeout(function(){
+    dt.addItem({
+            "jj" : "dyn",
+            "myname" : "0.1"
+        });
+
+setTimeout(function(){
+    dt.addItem([
+
+        {
+            "jj" : "dyn1",
+            "myname" : "j21"
+        },
+        {
+            "jj" : "dyn2",
+            "myname" : "j22"
+        }
+
+    ]);
+
+
+
+},1000);
+
+},1000);
     </script>
 
+
+<button onclick="console.log(dt.getSelection());" >Get</button>
 
 </body>
 
