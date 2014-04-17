@@ -238,7 +238,7 @@ var dtEnhanced = function($){
         },
 
         show : function(elm,dtConfig){
-            $(elm).append(this.$table);
+            $(elm).html(this.$table);
             this.$table.dataTable(dtConfig);
         }
 
