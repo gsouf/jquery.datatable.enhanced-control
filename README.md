@@ -101,7 +101,8 @@ When calling ``dt.show("#element")`` you can use as second parameter the config 
 
 is equivalent to 
 
-``$(theTable).appendTo("#element").datatable({/*datatable config*/});``
+``$("#element").html($(theTable)); $(theTable).datatable({/*datatable config*/});``
+
 
 
 Adding item dynamically
