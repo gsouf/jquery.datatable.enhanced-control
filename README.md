@@ -215,7 +215,7 @@ A field is a column of the table. In the configuration a field can be either of 
 
 
 
-TODO
+ROADMAP
 -------
 
 * Field.class usable with a callback
@@ -233,3 +233,4 @@ TODO
 * row callback for customizing tr class (eg : one color per row type)
 * row grouping
 * row detail (show/hide)
+* selection event
