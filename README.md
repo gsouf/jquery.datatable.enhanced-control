@@ -234,3 +234,5 @@ ROADMAP
 * row grouping
 * row detail (show/hide)
 * selection event
+* elipsis
+* tooltip
