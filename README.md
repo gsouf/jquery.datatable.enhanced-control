@@ -230,3 +230,4 @@ TODO
 * minification
 * searcheable / visible / orderable columns
 * groupable headers
+* row callback for customizing tr class (eg : one color per row type)
