@@ -228,3 +228,5 @@ TODO
 * some examples online : github page
 * bower inclusion
 * minification
+* searcheable / visible / orderable columns
+* groupable headers
