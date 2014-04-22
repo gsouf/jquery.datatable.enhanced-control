@@ -22,6 +22,7 @@
 
         selectable: "single", // possible values "single","multiple",false
 
+        selectionChange:function(){ console.log(this.getSelection()); };
 
     }
 
@@ -41,11 +42,12 @@ var dtEnhanced = function($){
 
         jQuery.extend(this,{
 
-            "data"          : [],
-            "itemsRoot"     : null,
-            "fields"        : null,
-            "idField"       : null,
-            "selectable"    : "single"
+            "data"           : [],
+            "itemsRoot"      : null,
+            "fields"         : null,
+            "idField"        : null,
+            "selectable"     : "single",
+            "selectionChange": null 
                      
         },config);
 
@@ -173,15 +175,18 @@ var dtEnhanced = function($){
 
         },
 
-        rowClicked : function(row){
-
+        // reserved for internal use
+        // it applies the new stats of a row (selected/unselected) that is clicked
+        // returns true if the stat changed
+        __makeRowSelection : function(row){
             if(typeof this.selectable === "number"){
                 if($(row).hasClass("dtec-row-selected")){
                     $(row).removeClass("dtec-row-selected");
-                    return false;
+                    return true;
                 }else{
                     if(this.$table.find(".dtec-row-selected").length >= this.selectable){
-
+                        // already reached the max selection
+                        return false;
                     }else{
                         $(row).addClass("dtec-row-selected");
                         return true;
@@ -192,7 +197,7 @@ var dtEnhanced = function($){
             }else if(this.selectable === "single"){
                 if($(row).hasClass("dtec-row-selected")){
                     $(row).removeClass("dtec-row-selected");
-                    return false;
+                    return true;
                 }else{
                     this.$table.find(".dtec-row-selected").removeClass("dtec-row-selected");
                     $(row).addClass("dtec-row-selected");
@@ -200,7 +205,16 @@ var dtEnhanced = function($){
                 }
             }else if(this.selectable === "multi"){
                 $(row).toggleClass("dtec-row-selected");
-                return $(row).hasClass("dtec-row-selected");
+                return true;
+            }
+        },
+
+        rowClicked : function(row){
+            
+            var s = this.__makeRowSelection(row);
+            
+            if(s && this.selectionChange){
+                this.selectionChange.apply(this,[]);
             }
 
             

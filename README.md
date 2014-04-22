@@ -144,6 +144,10 @@ new dtEnhanced.table({
     // see below for more information about fields
     "fields"        : [],
 
+    // handler triggered when the selection changes
+    "selectionChange" : function(){
+        console.log(this.getSelection());
+    },
 
     // Defines if the rows are selectable
     // Possible values :
@@ -233,6 +237,5 @@ ROADMAP
 * row callback for customizing tr class (eg : one color per row type)
 * row grouping
 * row detail (show/hide)
-* selection event
 * elipsis
 * tooltip
