@@ -24,6 +24,8 @@
 
         selectionChange:function(){ console.log(this.getSelection()); };
 
+        childContent : function(set,items,data){ return "Full Name : " + set.firstname + " " +  set.lastname; };
+
     }
 
  */
@@ -38,18 +40,15 @@ var dtEnhanced = function($){
 
 /*============== TABLE ==============*/
 
+    
+
     dtEnhanced.table = function(config){
 
-        jQuery.extend(this,{
-
-            "data"           : [],
-            "itemsRoot"      : null,
-            "fields"         : null,
-            "idField"        : null,
-            "selectable"     : "single",
-            "selectionChange": null 
-                     
-        },config);
+        jQuery.extend(
+            this,
+            dtEnhanced.table.defaultConfig,
+            config
+        );
 
         this.fields = this.initFields(this.fields);
         this.$table = this.initTable();
@@ -60,6 +59,16 @@ var dtEnhanced = function($){
             this.__addRow(items[i]);
         }
 
+    };
+    
+    dtEnhanced.table.defaultConfig = {
+        "data"           : [],
+        "itemsRoot"      : null,
+        "fields"         : null,
+        "idField"        : null,
+        "selectable"     : "single",
+        "selectionChange": null,
+        "childContent"   : null
     };
 
     dtEnhanced.table.prototype = {
@@ -72,13 +81,25 @@ var dtEnhanced = function($){
                 if(fields[i] instanceof dtEnhanced.field ){
                     finalFields[i] = fields[i];
                 }else{
-                    if(typeof fields[i] === "object" ){
+                    if(typeof fields[i] === "object" &&  (!fields[i].type || !fields[i].type === "field" ) ){
                         finalFields[i] = new dtEnhanced.field(fields[i]);
                     }else{
-                        switch(fields[i]){
+                        
+                        
+                        var type = null
+                        if(typeof fields[i] === "object")
+                            type = fields[i].type;
+                        else
+                            type = fields[i];
+                        
+                        switch(type){
 
                             case "x":
                                 finalFields[i] = new dtEnhanced.checkboxField(fields[i]);
+                                break;
+                                
+                            case "+":
+                                finalFields[i] = new dtEnhanced.detailsControlField(fields[i]);
                                 break;
 
                             default:
@@ -103,6 +124,7 @@ var dtEnhanced = function($){
             $table.append($thead);
             $table.append($tbody);
 
+            $table.data("dtec-object",this);
 
             // CREATE THE HEADER
             $row = $("<tr/>");
@@ -279,7 +301,7 @@ var dtEnhanced = function($){
             "render"    : null,
             "header"    : null,
             "class"     : null
-        }
+        };
 
         // if not an object then it is the name only
         if(typeof config !== 'object'){
@@ -325,7 +347,7 @@ var dtEnhanced = function($){
 
         }
 
-    }
+    };
 
 
 
@@ -348,6 +370,76 @@ var dtEnhanced = function($){
     dtEnhanced.checkboxField.prototype.makeBodyCol = function(table,set){
         var $td = $("<td/>");
         $td.append("<div class='dtec-select-field' />");
+        return $td;
+    };
+    
+    
+    
+/*============== DETAILS CONTROL FIELD ==============*/
+    
+    /**
+     * aditional config :
+     * 
+     * - content      : "view details"  // also possible as a callback : function(set,items,fullData)
+     * - childContent : function(set,items,fullData)
+     * 
+     * childcontent mays overide the childContent defined on the table
+     * 
+     * @param {type} config
+     * @returns {undefined}
+     */
+    dtEnhanced.detailsControlField = function(config){
+
+        dtEnhanced.field.apply(this,[config]);
+        this.width   = 15;
+        this.content = config.content || "+";
+
+    };
+
+    dtEnhanced.detailsControlField.prototype = Object.create(dtEnhanced.field.prototype);
+
+    dtEnhanced.detailsControlField.prototype.makeBodyCol = function(table,set){
+        var $td = $("<td/>");
+        var self = this;
+        var $content = $("<div class='dtec-details-control'/>");
+        
+        if(this.content){
+            if(( typeof(this.content) === "function" )){
+                $content.html(this.content(set , table.getItems() , table.data ));
+            }else{
+                $content.html(this.content);
+            }
+        }
+        
+        $content.appendTo($td);
+        
+        $td.click(function(){
+            
+            var dtec = $(this).closest("table").data("dtec-object");
+            var dt   = $(this).closest("table").DataTable();
+            
+            var $tr  = $(this).closest("tr");
+            var row  = dt.row($tr);
+            
+            if( row.child.isShown() ){
+                row.child.hide();
+                $tr.removeClass('shown');
+            }else{
+                
+                var callBack = null;
+                
+                if(self.childContent){
+                    callBack = self.childContent;
+                }else if(dtec.childContent){
+                    callBack = dtec.childContent;
+                }
+                
+                var content = callBack ? callBack(set , table.getItems() , table.data ) : "";
+                row.child( content ).show();
+                $tr.removeClass('shown');
+            }
+     
+        });
         return $td;
     };
 
