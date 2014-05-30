@@ -222,20 +222,20 @@ A field is a column of the table. In the configuration a field can be either of 
 ROADMAP
 -------
 
-* Field.class usable with a callback
-* width also in %
-* easy ajax pagination
-* shift click for multi select
-* removeItem()
-* clearSelection()
-* un/select all row from header
-* some examples online : github page
-* bower inclusion
-* minification
-* searcheable / visible / orderable columns
-* groupable headers
-* row callback for customizing tr class (eg : one color per row type)
-* row grouping
-* row detail (show/hide)
-* elipsis
-* tooltip
+* [ ] Field.class usable with a callback
+* [ ] width also in %
+* [ ] easy ajax pagination/search
+* [ ] shift click for multi select
+* [ ] removeItem()
+* [ ] clearSelection()
+* [ ] un/select all row from header
+* [ ] some examples online : github page
+* [ ] bower inclusion
+* [ ] minification
+* [ ] searcheable / visible / orderable columns
+* [ ] groupable headers
+* [ ] row callback for customizing tr class (eg : one color per row type)
+* [ ] row grouping
+* [x] row detail (show/hide)
+* [ ] elipsis
+* [ ] tooltip
