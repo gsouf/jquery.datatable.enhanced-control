@@ -59,7 +59,7 @@ var dtEnhanced = function($){
         this.fields = this.initFields(this.fields);
         this.$table = this.initTable();
 
-        
+        this.lastSelection = null;
 
     };
     
@@ -179,6 +179,9 @@ var dtEnhanced = function($){
                 var definition = {
                     "searchable" : this.fields[i].searchable,
                     "orderable"  : this.fields[i].orderable,
+                    "visible"    : this.fields[i].visible,
+                    "width"      : this.fields[i].width,
+                    "type"       : this.fields[i].type,
                     "data"       : this.fields[i].name,
                     "render"     : renderCallback,
                     "createdCell": createdCallback
@@ -201,8 +204,12 @@ var dtEnhanced = function($){
             var $tr = $(tr);
             var self  = this;
             // CLICK HANDLER
-            $tr.click(function(){
-                self.rowClicked(this);
+            $tr.mousedown(function(e){
+                self.rowClicked(this,e.shiftKey);
+
+                if(e.shiftKey){
+                    e.preventDefault();
+                }
             });
             // STORE THE SET TO FIND IT LATER
             $tr.data("dtec-set",set);
@@ -211,12 +218,52 @@ var dtEnhanced = function($){
         // reserved for internal use
         // it applies the new stats of a row (selected/unselected) that is clicked
         // returns true if the stat changed
-        __makeRowSelection : function(row){
+        __makeRowSelection : function(row,largeSelection){
+
+            var self = this;
+
+            if(this.selectable === false){
+                return false;
+            }
+
+            var changed = false;
+
+            if(largeSelection){
+                if(this.lastSelection && this.$table.find(this.lastSelection)){
+                    var mode = $(row).hasClass("dtec-row-selected") ? -1 : 1;
+
+                    var s1 = this.lastSelection.index();
+                    var s2 = $(row).index();
+
+                    var start = s1 > s2 ? s2 : s1;
+                    var end   = s1 > s2 ? s1 : s2;
+
+                    $(this.$table).find("tr").slice( start + 1 , end + 2 ).each(function(){
+                        self.__selectRow(this,mode);
+                    });
+
+                }else{
+                    changed = this.__selectRow(row,0);
+                }
+
+            }else{
+                changed = this.__selectRow(row,0);
+            }
+            
+            this.lastSelection = $(row);
+            return changed;
+        },
+
+        /**
+         * internal use only
+         * @param selectionType  -1:unselect only   1:selection only    0:automatique
+         */
+        __selectRow : function(row,selectionType){
             if(typeof this.selectable === "number"){
-                if($(row).hasClass("dtec-row-selected")){
+                if($(row).hasClass("dtec-row-selected" && selectionType !== 1)){
                     $(row).removeClass("dtec-row-selected");
                     return true;
-                }else{
+                }else if( selectionType !== -1 ){
                     if(this.$table.find(".dtec-row-selected").length >= this.selectable){
                         // already reached the max selection
                         return false;
@@ -225,26 +272,31 @@ var dtEnhanced = function($){
                         return true;
                     }
                 }
-            }else if(this.selectable === false){
-                return false;
             }else if(this.selectable === "single"){
-                if($(row).hasClass("dtec-row-selected")){
+                if($(row).hasClass("dtec-row-selected" && selectionType !== 1)){
                     $(row).removeClass("dtec-row-selected");
                     return true;
-                }else{
+                }else if( selectionType !== -1 ){
                     this.$table.find(".dtec-row-selected").removeClass("dtec-row-selected");
                     $(row).addClass("dtec-row-selected");
                     return true;
                 }
-            }else if(this.selectable === "multi"){
-                $(row).toggleClass("dtec-row-selected");
+            }else if(this.selectable === "multi" || this.selectable){
+                if( selectionType === 0 ){
+                    $(row).toggleClass("dtec-row-selected");
+                }else if( selectionType === 1 ){
+                    $(row).addClass("dtec-row-selected");
+                }else{
+                    $(row).removeClass("dtec-row-selected");
+                }
                 return true;
             }
         },
 
-        rowClicked : function(row){
+
+        rowClicked : function(row,largeSelection){
             
-            var s = this.__makeRowSelection(row);
+            var s = this.__makeRowSelection(row,largeSelection);
             
             if(s && this.selectionChange){
                 this.selectionChange.apply(this,[]);
@@ -363,7 +415,7 @@ var dtEnhanced = function($){
 
     Possible values for config :
 
-        - field config : name,width,render,header,class,searchable,orderable  // only name is mandatory
+        - field config : name,width,render,header,class,searchable,orderable,visible,type  // only name is mandatory
         - string => name config alone
 
     */
@@ -376,7 +428,9 @@ var dtEnhanced = function($){
             "header"    : null,
             "class"     : null,
             "searchable": true,
-            "orderable" : true
+            "orderable" : true,
+            "visible"   : true,
+            "type"        : "string"
         };
 
         // if not an object then it is the name only
