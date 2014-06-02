@@ -223,9 +223,8 @@ ROADMAP
 -------
 
 * [ ] Field.class usable with a callback
-* [ ] width also in %
-* [ ] easy ajax pagination/search
-* [ ] shift click for multi select
+* [ ] intuitive serverside processing
+* [x] shift click for multi select
 * [ ] removeItem()
 * [ ] clearSelection()
 * [ ] un/select all row from header
