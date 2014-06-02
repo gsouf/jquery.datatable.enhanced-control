@@ -239,3 +239,4 @@ ROADMAP
 * [x] row detail (show/hide)
 * [ ] elipsis
 * [ ] tooltip
+* [ ] colmun alignment
