@@ -232,11 +232,11 @@ ROADMAP
 * [ ] some examples online : github page
 * [ ] bower inclusion
 * [ ] minification
-* [ ] searcheable / visible / orderable columns
+* [x] searcheable / visible / orderable columns
 * [ ] groupable headers
 * [ ] row callback for customizing tr class (eg : one color per row type)
 * [ ] row grouping
 * [x] row detail (show/hide)
-* [ ] elipsis
 * [ ] tooltip
-* [ ] colmun alignment
+* [ ] colmun alignment
+* [ ] update the readme
