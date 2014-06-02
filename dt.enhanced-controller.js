@@ -13,8 +13,14 @@
 
         fields: [
     
-            {name:"id",width:20,render:function(value,set,items,data){return value;},header:"#",class:"custom-class" },
-            "name",
+            {   
+                name:"id",
+                width:20,
+                render:function(value,set,items,data){return value;},
+                header:"#",
+                class:"custom-class" 
+            },
+            
 
         ],
 
@@ -41,7 +47,7 @@ var dtEnhanced = function($){
 /*============== TABLE ==============*/
 
     
-
+    
     dtEnhanced.table = function(config){
 
         jQuery.extend(
@@ -53,23 +59,19 @@ var dtEnhanced = function($){
         this.fields = this.initFields(this.fields);
         this.$table = this.initTable();
 
-        var items = this.getItems();
-
-        for(var i in items){
-            this.__addRow(items[i]);
-        }
+        
 
     };
     
     dtEnhanced.table.defaultConfig = {
-        "data"           : [],
-        "itemsRoot"      : null,
         "fields"         : null,
         "idField"        : null,
         "selectable"     : "single",
         "selectionChange": null,
         "childContent"   : null
     };
+
+        
 
     dtEnhanced.table.prototype = {
 
@@ -114,8 +116,33 @@ var dtEnhanced = function($){
             return finalFields;
 
         },
+                
+        
+        addItem : function(set){
+
+            if(set instanceof Array){
+                for(var i in set){
+                    this._e_addItem(set[i]);
+                }
+            }else{
+                this._e_addItem(item);
+
+            }
+
+        },
+                
+        _e_addItem : function(item){
+            console.log("addItem not implemented");
+        },
+                
 
         initTable : function(){
+
+            this.dtColumns = [];
+
+            var self = this;
+            var selfTable = this;
+            var fields = this.fields;
 
             // PREPARE THE STRUCTURE
             var $table = $('<table class="table table-striped table-bordered"/>');
@@ -130,71 +157,55 @@ var dtEnhanced = function($){
             $row = $("<tr/>");
             $thead.append($row);
 
-            for(var i in this.fields){
+            for(var i in fields){
 
-                $col = this.fields[i].makeHeaderCol(this)
+                var field = fields[i];
+
+                $col = field.makeHeaderCol(this);
                 $row.append($col);
 
+                var renderCallback = (function ( i , fields ){
+                    return function ( data , type , set , meta ) {
+                        return fields[i].makeBodyCol(self,set).html();
+                    };
+                }(i,fields));
+
+                var createdCallback = (function ( i , fields ){
+                    return function ( cell, cellData, rowData, rowIndex, colIndex ) {
+                        fields[i].bindCol( self , cell );
+                    };
+                }(i,fields));
+
+                var definition = {
+                    "searchable" : this.fields[i].searchable,
+                    "orderable"  : this.fields[i].orderable,
+                    "data"       : this.fields[i].name,
+                    "render"     : renderCallback,
+                    "createdCell": createdCallback
+                };
+                
+                
+                
+                this.fields[i]._postInitDtColumnDef(this,definition);
+                
+                this.dtColumns.push(definition);
+
             }
-
+ 
             
-
             return $table;
-
-        },
-
-        addItem : function(set){
-
-            if(set instanceof Array){
-                for(var i in set){
-                    this.addItem(set[i]);
-                }
-            }else{
-
-                if(this.itemsRoot)
-                    this.data[this.itemsRoot].push(set);
-                else
-                    this.data.push(set);
-
-                var renderedSet = [];
-
-                for(var i in this.fields){
-                    renderedSet.push(this.fields[i].makeBodyCol(this,set).html());
-                }
-
-                var index = this.$table.dataTable().fnAddData(renderedSet);
-
-                this.__bindRow(set, $(this.$table.dataTable().fnGetNodes(index)) );
-            }
-
         },
 
 
-        /* INTERNAL USAGE ONLY use addItem instead */
-        __addRow : function(set){
-            var $tr   = $("<tr/>");
-
-            for(var i in this.fields){
-                $tr.append(this.fields[i].makeBodyCol(this,set));
-            }
-            
-            this.$table.find("tbody").append($tr);
-
-            this.__bindRow(set,$tr);
-
-        },
-
-        __bindRow : function(set,$tr){
+        __bindRow : function(set,tr){
+            var $tr = $(tr);
             var self  = this;
-
             // CLICK HANDLER
             $tr.click(function(){
                 self.rowClicked(this);
             });
-
             // STORE THE SET TO FIND IT LATER
             $tr.data("dtec-set",set);
-
         },
 
         // reserved for internal use
@@ -238,13 +249,6 @@ var dtEnhanced = function($){
             if(s && this.selectionChange){
                 this.selectionChange.apply(this,[]);
             }
-
-            
-        },
-
-        
-        getItems : function(){
-            return this.itemsRoot ? this.data[this.itemsRoot] : this.data;
         },
 
         getSelectedRows : function(){
@@ -256,7 +260,6 @@ var dtEnhanced = function($){
                 if( $(rows[i]).hasClass("dtec-row-selected") )
                     selRows.push(rows[i]);
             } 
-
             return selRows;
         },
 
@@ -274,13 +277,84 @@ var dtEnhanced = function($){
         },
 
         show : function(elm,dtConfig){
-            $(elm).html(this.$table);
-            this.$table.dataTable(dtConfig);
-        }
+            var self = this;
 
+            $(elm).html(this.$table);
+            
+            dtConfig = dtConfig || {};
+
+            dtConfig.columns    = this.dtColumns;
+            dtConfig.createdRow = function(row,data,index){
+                self.__bindRow(data,row);
+            }
+
+            this.dt = this.$table.DataTable(dtConfig);
+        }
     };
 
 
+
+/*============== DATATABLE ==============*/
+
+    dtEnhanced.Datatable = function(config){
+        var newConf = {};
+        
+        jQuery.extend(
+            newConf,
+            dtEnhanced.Datatable.defaultConfig,
+            config
+        );
+            
+        dtEnhanced.table.apply(this,[newConf]);
+        
+        
+
+    };
+    
+    dtEnhanced.Datatable.prototype = Object.create(dtEnhanced.table.prototype);
+    
+    dtEnhanced.Datatable.defaultConfig = {
+        "data"           : [],
+        "itemsRoot"      : null
+    };
+
+    dtEnhanced.Datatable.prototype._e_addItem = function(item){
+        
+        if(this.itemsRoot)
+            this.data[this.itemsRoot].push(set);
+        else
+            this.data.push(set);
+
+        var renderedSet = [];
+
+        for(var i in this.fields){
+            renderedSet.push(this.fields[i].makeBodyCol(this,set).html());
+        }
+
+        var index = this.$table.dataTable().fnAddData(renderedSet);
+
+        this.__bindRow(set, $(this.$table.dataTable().fnGetNodes(index)) );
+        
+    };
+    
+
+    dtEnhanced.Datatable.prototype.getItems = function(){
+        return this.itemsRoot ? this.data[this.itemsRoot] : this.data;
+    };
+            
+    dtEnhanced.Datatable.prototype.show = function(elm,config){
+
+        dtEnhanced.table.prototype.show.apply(this,[elm,config]);
+        
+        var items = this.getItems();
+
+        for(var i in items){
+            this.dt.row.add(items[i]);
+        }
+        
+        this.dt.draw();
+        
+    };
 
 
 /*============== FIELD ==============*/
@@ -289,7 +363,7 @@ var dtEnhanced = function($){
 
     Possible values for config :
 
-        - field config : name,width,render,header,class  // only name is mandatory
+        - field config : name,width,render,header,class,searchable,orderable  // only name is mandatory
         - string => name config alone
 
     */
@@ -300,7 +374,9 @@ var dtEnhanced = function($){
             "width"     : null,
             "render"    : null,
             "header"    : null,
-            "class"     : null
+            "class"     : null,
+            "searchable": true,
+            "orderable" : true
         };
 
         // if not an object then it is the name only
@@ -320,6 +396,13 @@ var dtEnhanced = function($){
 
     dtEnhanced.field.prototype = {
 
+        /**
+         * called to overide init of column definition. Usefull to do special stuff for special column type (checkable, details...)
+         */
+        _postInitDtColumnDef : function(table,definition){
+            return definition;
+        },
+
         makeHeaderCol : function(table){
 
             var $field = $("<th/>");
@@ -336,15 +419,21 @@ var dtEnhanced = function($){
         },
 
         makeBodyCol : function(table,set){
-            var $td = $("<td/>");
+    
+            var $div = $("<div/>");
+    
             // fill it
             if(this.render)
-                $td.html(this.render(set[this.name],set,table.getItems));
+                $div.html(this.render(set[this.name],set,table.getItems));
             else
-                $td.html(set[this.name]);
+                $div.html(set[this.name]);
 
-            return $td;
+            return $div;
 
+        },
+
+        bindCol : function(table,td){
+            
         }
 
     };
@@ -368,9 +457,9 @@ var dtEnhanced = function($){
     dtEnhanced.checkboxField.prototype = Object.create(dtEnhanced.field.prototype);
 
     dtEnhanced.checkboxField.prototype.makeBodyCol = function(table,set){
-        var $td = $("<td/>");
-        $td.append("<div class='dtec-select-field' />");
-        return $td;
+        var $div = $("<div/>");
+        $div.append("<div class='dtec-select-field' />");
+        return $div;
     };
     
     
@@ -399,7 +488,7 @@ var dtEnhanced = function($){
     dtEnhanced.detailsControlField.prototype = Object.create(dtEnhanced.field.prototype);
 
     dtEnhanced.detailsControlField.prototype.makeBodyCol = function(table,set){
-        var $td = $("<td/>");
+        var $div = $("<div/>");
         var self = this;
         var $content = $("<div class='dtec-details-control'/>");
         
@@ -411,38 +500,45 @@ var dtEnhanced = function($){
             }
         }
         
-        $content.appendTo($td);
+        $content.appendTo($div);
         
-        $td.click(function(){
-            
+        return $div;
+    };
+    
+    dtEnhanced.detailsControlField.prototype.bindCol = function(table,td){
+
+        $(td).click(function(){
+
             var dtec = $(this).closest("table").data("dtec-object");
             var dt   = $(this).closest("table").DataTable();
-            
+
             var $tr  = $(this).closest("tr");
             var row  = dt.row($tr);
-            
+
             if( row.child.isShown() ){
                 row.child.hide();
                 $tr.removeClass('shown');
             }else{
-                
+
                 var callBack = null;
-                
+
                 if(self.childContent){
                     callBack = self.childContent;
                 }else if(dtec.childContent){
                     callBack = dtec.childContent;
                 }
-                
+
                 var content = callBack ? callBack(set , table.getItems() , table.data ) : "";
                 row.child( content ).show();
                 $tr.removeClass('shown');
             }
-     
-        });
-        return $td;
-    };
 
+        });
+        
+    }
+        
+        
+        
 
 
 
