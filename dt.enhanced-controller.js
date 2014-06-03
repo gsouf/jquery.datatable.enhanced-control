@@ -11,7 +11,7 @@
 
         itemsRoot:"items",
 
-        fields: [
+        columns: [
     
             {   
                 name:"id",
@@ -56,7 +56,7 @@ var dtEnhanced = function($){
             config
         );
 
-        this.fields = this.initFields(this.fields);
+        this.columns = this.initFields(this.columns);
         this.$table = this.initTable();
 
         this.lastSelection = null;
@@ -64,7 +64,7 @@ var dtEnhanced = function($){
     };
     
     dtEnhanced.table.defaultConfig = {
-        "fields"         : null,
+        "columns"        : null,
         "idField"        : null,
         "selectable"     : "single",
         "selectionChange": null,
@@ -149,7 +149,7 @@ var dtEnhanced = function($){
 
             var self = this;
             var selfTable = this;
-            var fields = this.fields;
+            var fields = this.columns;
 
             // PREPARE THE STRUCTURE
             var $table = $('<table class="table table-striped table-bordered"/>');
@@ -184,19 +184,20 @@ var dtEnhanced = function($){
                 }(i,fields));
 
                 var definition = {
-                    "searchable" : this.fields[i].searchable,
-                    "orderable"  : this.fields[i].orderable,
-                    "visible"    : this.fields[i].visible,
-                    "width"      : this.fields[i].width,
-                    "type"       : this.fields[i].type,
-                    "data"       : this.fields[i].name,
+                    "searchable" : this.columns[i].searchable,
+                    "orderable"  : this.columns[i].orderable,
+                    "visible"    : this.columns[i].visible,
+                    "width"      : this.columns[i].width,
+                    "type"       : this.columns[i].type,
+                    "data"       : this.columns[i].name,
+                    "name"       : this.columns[i].name,
                     "render"     : renderCallback,
                     "createdCell": createdCallback
                 };
                 
                 
                 
-                this.fields[i]._postInitDtColumnDef(this,definition);
+                this.columns[i]._postInitDtColumnDef(this,definition);
                 
                 this.dtColumns.push(definition);
 
@@ -431,7 +432,7 @@ var dtEnhanced = function($){
     /**
      * config example :
      * {
-     *  $ajax : { // jquery ajax config : http://api.jquery.com/jQuery.ajax/
+     *  ajax : { // jquery ajax config : http://api.jquery.com/jQuery.ajax/
      *      url : "myjson.json"
      *  },
      *  
@@ -459,7 +460,7 @@ var dtEnhanced = function($){
     dtEnhanced.Ajaxtable.prototype = Object.create(dtEnhanced.table.prototype);
     
     dtEnhanced.Ajaxtable.defaultConfig = {
-        "$ajax"         : {},
+        "ajax"         : {},
         "autoload"      : true,
         "itemsRoot"     : null,
         "dataHandler"    : null
@@ -471,12 +472,17 @@ var dtEnhanced = function($){
         
         this.clear();
         
-        $.ajax(this.$ajax).success(function(data){
+        $.ajax(this.ajax).success(function(data){
             
             if(self.dataHandler)
                 data = self.dataHandler(data);
-            else
-                data = JSON.parse(data);
+            else{
+                try{
+                    data = JSON.parse(data);
+                }catch(e){
+                    console.error("cant parse data from ajax request : " + self.ajax.url);
+                }
+            }
             
             var items;
             
@@ -497,10 +503,56 @@ var dtEnhanced = function($){
     dtEnhanced.Ajaxtable.prototype.show = function(elm,config){
         dtEnhanced.table.prototype.show.apply(this,[elm,config]);
         
-        console.log(this.autoload);
-        
         if(this.autoload)
             this.reload();
+    };
+    
+    
+    
+/*============== SERVERTABLE ==============*/
+
+    /**
+     * config example :
+     * {
+     *  ajax : { // jquery ajax config : http://api.jquery.com/jQuery.ajax/
+     *      url : "myjson.json"
+     *  },
+     *  
+     *  autoload : true,  // will load the ajax automatically on show
+     *  
+     *  itemsRoot : "items",  // handy shortcut when itemList is not at the root of the array
+     *  
+     *  dataHandler : function(data){  var processedData = doSomething(data); return processedData; }
+     *  // allows to parse data on your one way. If null or not defined the default behaviour is to use JSON.parse(data)
+     *  
+     */
+    dtEnhanced.Servertable = function(config){
+        var newConf = {};
+        
+        jQuery.extend(
+            newConf,
+            dtEnhanced.Servertable.defaultConfig,
+            config
+        );
+            
+        dtEnhanced.table.apply(this,[newConf]);
+
+    };
+    
+    dtEnhanced.Servertable.prototype = Object.create(dtEnhanced.table.prototype);
+    
+    dtEnhanced.Servertable.defaultConfig = {
+        "ajax"         : {},
+        "autoload"      : true
+    };
+
+    
+
+    dtEnhanced.Servertable.prototype.show = function(elm,config){
+        config = config || {};
+        config.serverSide = true;
+        config.ajax = this.ajax;
+        dtEnhanced.table.prototype.show.apply(this,[elm,config]);
     };
 
 
@@ -685,11 +737,6 @@ var dtEnhanced = function($){
         });
         
     }
-        
-        
-        
-
-
 
     return dtEnhanced;
 
