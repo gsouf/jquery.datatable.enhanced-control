@@ -130,7 +130,7 @@ var dtEnhanced = function($){
                 }
             }else{
                 if(this._e_addItem(set)){
-                    this.dt.row.add(item);
+                    this.dt.row.add(set);
                 }
             }
             
@@ -428,63 +428,79 @@ var dtEnhanced = function($){
     
 /*============== AJAXTABLE ==============*/
 
+    /**
+     * config example :
+     * {
+     *  $ajax : { // jquery ajax config : http://api.jquery.com/jQuery.ajax/
+     *      url : "myjson.json"
+     *  },
+     *  
+     *  autoload : true,  // will load the ajax automatically on show
+     *  
+     *  itemsRoot : "items",  // handy shortcut when itemList is not at the root of the array
+     *  
+     *  dataHandler : function(data){  var processedData = doSomething(data); return processedData; }
+     *  // allows to parse data on your one way. If null or not defined the default behaviour is to use JSON.parse(data)
+     *  
+     */
     dtEnhanced.Ajaxtable = function(config){
         var newConf = {};
         
         jQuery.extend(
             newConf,
-            dtEnhanced.Datatable.defaultConfig,
+            dtEnhanced.Ajaxtable.defaultConfig,
             config
         );
             
         dtEnhanced.table.apply(this,[newConf]);
+
+    };
+    
+    dtEnhanced.Ajaxtable.prototype = Object.create(dtEnhanced.table.prototype);
+    
+    dtEnhanced.Ajaxtable.defaultConfig = {
+        "$ajax"         : {},
+        "autoload"      : true,
+        "itemsRoot"     : null,
+        "dataHandler"    : null
+    };
+
+    dtEnhanced.Ajaxtable.prototype.reload = function(){
         
-        // init the data item root if the set is initially empty 
-        if(this.itemsRoot && !this.data[this.itemsRoot])
-            this.data[this.itemsRoot] = [];
-
-    };
-    
-    dtEnhanced.Datatable.prototype = Object.create(dtEnhanced.table.prototype);
-    
-    dtEnhanced.Datatable.defaultConfig = {
-        "data"           : [],
-        "itemsRoot"      : null
-    };
-
-    dtEnhanced.Datatable.prototype._e_addItem = function(item){
+        var self = this;
         
-        if(this.itemsRoot)
-            this.data[this.itemsRoot].push(item);
-        else
-            this.data.push(item);
-
-        this.dt.row.add(item);
-        this.dt.draw();
+        this.clear();
         
-    };
-    
-    dtEnhanced.Datatable.prototype._e_clear = function(){
-        if(this.itemsRoot){
-            this.data[this.itemsRoot] = [];
-        }else{
-            this.data = [];
-        }
-        return true;
-    };
-    
-
-    dtEnhanced.Datatable.prototype.getItems = function(){
-        return this.itemsRoot ? this.data[this.itemsRoot] : this.data;
-    };
+        $.ajax(this.$ajax).success(function(data){
             
-    dtEnhanced.Datatable.prototype.show = function(elm,config){
+            if(self.dataHandler)
+                data = self.dataHandler(data);
+            else
+                data = JSON.parse(data);
+            
+            var items;
+            
+            if(self.itemsRoot){
+                items = data[self.itemsRoot];
+            }else{
+                items = data;
+            }
+            
+            for(var i in items){
+                self.addItem(items[i]);
+            }
+            
+        });
+        
+    };
+
+    dtEnhanced.Ajaxtable.prototype.show = function(elm,config){
         dtEnhanced.table.prototype.show.apply(this,[elm,config]);
-        var items = this.getItems();
-        for(var i in items){
-            this.dt.row.add(items[i]);
-        }
-        this.dt.draw();
+        
+        console.log(this.autoload);
+        
+        if(this.autoload)
+            this.reload();
     };
 
 
