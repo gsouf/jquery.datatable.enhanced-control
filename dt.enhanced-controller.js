@@ -14,11 +14,16 @@
         columns: [
     
             {   
-                name:"id",
-                width:20,
-                render:function(value,set,items,data){return value;},
-                header:"#",
-                class:"custom-class" 
+                name        :"id",
+                width       :20,
+                render      :function(value,set,items,data){return value;},
+                header      :"#",
+                class       :"custom-class",
+                searchable  : true,
+                orderable   : true,
+                visible     : true,
+                type        : "string",
+                
             },
             
 
@@ -460,7 +465,7 @@ var dtEnhanced = function($){
     dtEnhanced.Ajaxtable.prototype = Object.create(dtEnhanced.table.prototype);
     
     dtEnhanced.Ajaxtable.defaultConfig = {
-        "ajax"         : {},
+        "ajax"         : {},
         "autoload"      : true,
         "itemsRoot"     : null,
         "dataHandler"    : null
@@ -542,7 +547,7 @@ var dtEnhanced = function($){
     dtEnhanced.Servertable.prototype = Object.create(dtEnhanced.table.prototype);
     
     dtEnhanced.Servertable.defaultConfig = {
-        "ajax"         : {},
+        "ajax"         : {},
         "autoload"      : true
     };
 
@@ -737,8 +742,63 @@ var dtEnhanced = function($){
         });
         
     }
+    
+    
+    /*============== HELPER parseColumns ==============*/
+    
+    dtEnhanced.parseColumns = function(jsonString,overides){
+      
+        var columns = JSON.parse(jsonString);
+        
+        overides = overides || {};
+        
+        var getColumnByName = function(name){
+            for(var i in columns){
+                if(columns[i].name === name){
+                    return columns[i];
+                }
+            }
+        };
+        
+        for(var i in overides){
+            var col = getColumnByName(i);  
+            $.extend(col,overides[i]);
+        }
+        
+        return columns;
+    };
+    
+    
+    /*============== HELPER parseConfigs ==============*/
+    
+    dtEnhanced.parseConfigs = function(jsonString,overides){
+      
+        try{
+            var config = JSON.parse(jsonString);
+        }catch ($e){
+            console.error("json not valid");
+            return false;
+        }
+        
+        overides = overides || {};
+        
+        $.extend(true,config,overides);
+        
+        return config;
+    };
+    
+    
+    /*============== HELPER creationHelper ==============*/
+    
+    dtEnhanced.creationHelper = function(configString,confOverides,columnString,columnsOverides){
+        var columns = dtEnhanced.parseColumns(columnString,columnsOverides);
+        var config  = dtEnhanced.parseConfigs(configString,confOverides);
+        config.columns = columns;
+
+        return config;
+    };
+    
 
     return dtEnhanced;
 
 }(jQuery);
-
