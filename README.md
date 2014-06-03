@@ -239,3 +239,4 @@ ROADMAP
 * [ ] tooltip
 * [ ] colmun alignment
 * [ ] update the readme
+* [ ] make datatable api easyly reachable
