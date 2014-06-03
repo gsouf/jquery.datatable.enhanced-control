@@ -222,7 +222,7 @@ A field is a column of the table. In the configuration a field can be either of 
 ROADMAP
 -------
 
-* [ ] Field.class usable with a callback
+* [x] Field.class usable with a callback
 * [ ] intuitive serverside processing
 * [x] shift click for multi select
 * [ ] removeItem()
@@ -239,4 +239,4 @@ ROADMAP
 * [ ] tooltip
 * [ ] colmun alignment
 * [ ] update the readme
-* [ ] make datatable api easyly reachable
+* [x] make datatable api easyly reachable
