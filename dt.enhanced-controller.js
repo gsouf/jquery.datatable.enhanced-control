@@ -120,19 +120,26 @@ var dtEnhanced = function($){
         
         addItem : function(set){
 
+            set = set || {};
+
             if(set instanceof Array){
                 for(var i in set){
-                    this._e_addItem(set[i]);
+                    if(this._e_addItem(set[i])){
+                        this.dt.row.add(set[i]);
+                    }
                 }
             }else{
-                this._e_addItem(item);
-
+                if(this._e_addItem(set)){
+                    this.dt.row.add(item);
+                }
             }
+            
+            this.dt.draw();
 
         },
                 
         _e_addItem : function(item){
-            console.log("addItem not implemented");
+            return true;
         },
                 
 
@@ -327,6 +334,16 @@ var dtEnhanced = function($){
 
             return items;
         },
+                
+        clear : function(){
+            if(this._e_clear()){
+                this.dt.clear();
+            }
+        },
+                
+        _e_clear : function(){
+            return true;
+        },
 
         show : function(elm,dtConfig){
             var self = this;
@@ -338,7 +355,7 @@ var dtEnhanced = function($){
             dtConfig.columns    = this.dtColumns;
             dtConfig.createdRow = function(row,data,index){
                 self.__bindRow(data,row);
-            }
+            };
 
             this.dt = this.$table.DataTable(dtConfig);
         }
@@ -359,7 +376,9 @@ var dtEnhanced = function($){
             
         dtEnhanced.table.apply(this,[newConf]);
         
-        
+        // init the data item root if the set is initially empty 
+        if(this.itemsRoot && !this.data[this.itemsRoot])
+            this.data[this.itemsRoot] = [];
 
     };
     
@@ -373,20 +392,21 @@ var dtEnhanced = function($){
     dtEnhanced.Datatable.prototype._e_addItem = function(item){
         
         if(this.itemsRoot)
-            this.data[this.itemsRoot].push(set);
+            this.data[this.itemsRoot].push(item);
         else
-            this.data.push(set);
+            this.data.push(item);
 
-        var renderedSet = [];
-
-        for(var i in this.fields){
-            renderedSet.push(this.fields[i].makeBodyCol(this,set).html());
-        }
-
-        var index = this.$table.dataTable().fnAddData(renderedSet);
-
-        this.__bindRow(set, $(this.$table.dataTable().fnGetNodes(index)) );
+        return true;
         
+    };
+    
+    dtEnhanced.Datatable.prototype._e_clear = function(){
+        if(this.itemsRoot){
+            this.data[this.itemsRoot] = [];
+        }else{
+            this.data = [];
+        }
+        return true;
     };
     
 
@@ -395,17 +415,76 @@ var dtEnhanced = function($){
     };
             
     dtEnhanced.Datatable.prototype.show = function(elm,config){
-
         dtEnhanced.table.prototype.show.apply(this,[elm,config]);
-        
         var items = this.getItems();
-
         for(var i in items){
             this.dt.row.add(items[i]);
         }
+        this.dt.draw();
+    };
+    
+    
+    
+    
+/*============== AJAXTABLE ==============*/
+
+    dtEnhanced.Ajaxtable = function(config){
+        var newConf = {};
         
+        jQuery.extend(
+            newConf,
+            dtEnhanced.Datatable.defaultConfig,
+            config
+        );
+            
+        dtEnhanced.table.apply(this,[newConf]);
+        
+        // init the data item root if the set is initially empty 
+        if(this.itemsRoot && !this.data[this.itemsRoot])
+            this.data[this.itemsRoot] = [];
+
+    };
+    
+    dtEnhanced.Datatable.prototype = Object.create(dtEnhanced.table.prototype);
+    
+    dtEnhanced.Datatable.defaultConfig = {
+        "data"           : [],
+        "itemsRoot"      : null
+    };
+
+    dtEnhanced.Datatable.prototype._e_addItem = function(item){
+        
+        if(this.itemsRoot)
+            this.data[this.itemsRoot].push(item);
+        else
+            this.data.push(item);
+
+        this.dt.row.add(item);
         this.dt.draw();
         
+    };
+    
+    dtEnhanced.Datatable.prototype._e_clear = function(){
+        if(this.itemsRoot){
+            this.data[this.itemsRoot] = [];
+        }else{
+            this.data = [];
+        }
+        return true;
+    };
+    
+
+    dtEnhanced.Datatable.prototype.getItems = function(){
+        return this.itemsRoot ? this.data[this.itemsRoot] : this.data;
+    };
+            
+    dtEnhanced.Datatable.prototype.show = function(elm,config){
+        dtEnhanced.table.prototype.show.apply(this,[elm,config]);
+        var items = this.getItems();
+        for(var i in items){
+            this.dt.row.add(items[i]);
+        }
+        this.dt.draw();
     };
 
 
@@ -599,3 +678,4 @@ var dtEnhanced = function($){
     return dtEnhanced;
 
 }(jQuery);
+
