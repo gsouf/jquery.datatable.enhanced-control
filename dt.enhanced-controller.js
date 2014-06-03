@@ -548,7 +548,8 @@ var dtEnhanced = function($){
     
     dtEnhanced.Servertable.defaultConfig = {
         "ajax"         : {},
-        "autoload"      : true
+        "autoload"     : true,
+        "processing"   : true
     };
 
     
@@ -557,6 +558,8 @@ var dtEnhanced = function($){
         config = config || {};
         config.serverSide = true;
         config.ajax = this.ajax;
+        config.processing = config.processing || this.processing;
+        
         dtEnhanced.table.prototype.show.apply(this,[elm,config]);
     };
 
