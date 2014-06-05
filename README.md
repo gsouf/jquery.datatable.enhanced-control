@@ -227,6 +227,8 @@ ROADMAP
 * [x] shift click for multi select
 * [ ] removeItem()
 * [ ] clearSelection()
+* [ ] column order
+* [ ] serialisation
 * [ ] un/select all row from header
 * [ ] some examples online : github page
 * [ ] bower inclusion
