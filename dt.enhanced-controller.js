@@ -264,7 +264,7 @@ var dtEnhanced = function($){
 
                 if(!$td.hasClass("dtec-noselect")){
 
-                    self.rowClicked(this,null,e.shiftKey);
+                    self.rowClicked(this,e.shiftKey);
 
                     if(e.shiftKey){
                         e.preventDefault();
@@ -442,7 +442,7 @@ var dtEnhanced = function($){
         },
 
 
-        rowClicked : function(row,td,largeSelection){
+        rowClicked : function(row,largeSelection){
             var s = this.__makeRowSelection(row,largeSelection);
             if(s){
                 this.__updateSelectionCount();
@@ -895,7 +895,7 @@ var dtEnhanced = function($){
     dtEnhanced.detailsControlField = function(config){
 
         dtEnhanced.field.apply(this,[config]);
-        this.width   = 15;
+        this.width   = config.width || 15;
         this.content = config.content || "+";
 
     };
@@ -907,16 +907,16 @@ var dtEnhanced = function($){
         var self = this;
         var $content = $("<div class='dtec-details-control'/>");
 
-        if(this.content){
+
+        if(this.render)
+            $div.html(this.render(set[this.name],set,table.getItems));
+        else if(this.content){
             if(( typeof(this.content) === "function" )){
                 $content.html(this.content(set , table.getItems() , table.data ));
             }else{
                 $content.html(this.content);
             }
-        }else if(this.render)
-            $div.html(this.render(set[this.name],set,table.getItems));
-        else
-            $div.html(set[this.name]);
+        }
         
         $content.appendTo($div);
         
