@@ -1,4 +1,26 @@
 ;
+
+
+// ===== DATATABLE EXTEND ===== //
+
+$.fn.dataTableExt.aoFeatures.push( {
+    
+    "cFeature" : "s",
+    
+    "fnInit" : function( oSettings ){
+        
+        var $node = $("<div/>",{ class : "dataTables_selection" , text : "no selection"});
+        
+        return $node;
+        
+    }
+
+});
+
+
+// =============================//
+
+
 /**
     config example : 
 
@@ -10,6 +32,8 @@
         ],
 
         itemsRoot:"items",
+
+        tableClass : "additional-custom-class",
 
         columns: [
     
@@ -36,6 +60,11 @@
         selectionChange:function(){ console.log(this.getSelection()); };
 
         childContent : function(set,items,data){ return "Full Name : " + set.firstname + " " +  set.lastname; };
+
+        // keep selection accross pagination / ordering / searching
+        // it requires idField to be fill
+        keepSelection : true
+
 
     }
 
@@ -64,6 +93,8 @@ var dtEnhanced = function($){
         this.columns = this.initFields(this.columns);
         this.$table = this.initTable();
 
+        this.internalSelection = {};
+
         this.lastSelection = null;
 
     };
@@ -73,7 +104,9 @@ var dtEnhanced = function($){
         "idField"        : null,
         "selectable"     : "single",
         "selectionChange": null,
-        "childContent"   : null
+        "childContent"   : null,
+        "tableClass"     : null,
+        "keepSelection"  : true
     };
 
         
@@ -162,6 +195,10 @@ var dtEnhanced = function($){
             var $tbody  = $("<tbody/>");
             $table.append($thead);
             $table.append($tbody);
+            
+            if(this.tableClass){
+                $table.addClass(this.tableClass);
+            }
 
             $table.data("dtec-object",this);
 
@@ -189,18 +226,18 @@ var dtEnhanced = function($){
                 }(i,fields));
 
                 var definition = {
-                    "searchable" : this.columns[i].searchable,
-                    "orderable"  : this.columns[i].orderable,
-                    "visible"    : this.columns[i].visible,
-                    "width"      : this.columns[i].width,
-                    "type"       : this.columns[i].type,
-                    "data"       : this.columns[i].name,
-                    "name"       : this.columns[i].name,
-                    "render"     : renderCallback,
-                    "createdCell": createdCallback
+                    "searchable"    : this.columns[i].searchable,
+                    "orderable"     : this.columns[i].orderable,
+                    "visible"       : this.columns[i].visible,
+                    "width"         : this.columns[i].width,
+                    "orderDataType" : field.orderDataType,
+                    "data"          : this.columns[i].name,
+                    "name"          : this.columns[i].name,
+                    "render"        : renderCallback,
+                    "createdCell"   : createdCallback
                 };
                 
-                
+
                 
                 this.columns[i]._postInitDtColumnDef(this,definition);
                 
@@ -225,6 +262,8 @@ var dtEnhanced = function($){
                 }
             });
             // STORE THE SET TO FIND IT LATER
+            
+            
             $tr.data("dtec-set",set);
         },
 
@@ -252,7 +291,9 @@ var dtEnhanced = function($){
                     var end   = s1 > s2 ? s1 : s2;
 
                     $(this.$table).find("tr").slice( start + 1 , end + 2 ).each(function(){
-                        self.__selectRow(this,mode);
+                        if(self.__selectRow(this,mode)){
+                            changed = true;
+                        }
                     });
 
                 }else{
@@ -268,39 +309,123 @@ var dtEnhanced = function($){
         },
 
         /**
+         * triggered when datatable is drawn
+         * bound in table.show
+         * @returns {undefined}
+         */
+        __onDraw : function(){
+            
+            // we must reset large selection
+            this.lastSelection = null;
+            
+            if(this.keepSelection)
+                this.__restoreSelection();
+
+            this.__updateSelectionCount();
+        },
+                
+                
+        getRowId : function($row){
+        
+            return this.getSetId($row.data("dtec-set"));
+        },
+                
+        getSetId : function(set){    
+            if(this.idField){
+                return set[this.idField];
+            }
+            return null;
+        },
+                
+        __restoreSelection : function(){
+    
+            var self = this;
+    
+            this.$table.find("tbody tr").each(function(i,item){
+                
+                var $tr = $(item);
+                var id  = self.getRowId($tr);
+                if( id && self.internalSelection[id]){
+                    $tr.addClass("dtec-row-selected");
+                }else{
+                    $tr.removeClass("dtec-row-selected");
+                }
+            });
+    
+        },
+          
+          
+        __keepSelectionFeatureIsAvailable : function(){
+            return this.keepSelection && this.idField;
+        },
+          
+        /**
+         * should not be called directly
+         * used to keep selection across draw events
+         */
+        __internalSelectionAdd : function(set){
+            this.internalSelection[this.getSetId(set)] = set;
+        },
+            
+        /**
+         * should not be called directly
+         * used to keep selection across draw events
+         */
+        __internalSelectionRemove : function(id){
+            this.internalSelection[id] = false;
+            delete this.internalSelection[id];
+        },
+
+        __rowSetSelection : function($row,selected){
+            if(selected){
+                $row.addClass("dtec-row-selected");
+                if(this.keepSelection)
+                    this.__internalSelectionAdd($row.data("dtec-set"));
+            }else{
+                $row.removeClass("dtec-row-selected");
+                if(this.keepSelection)
+                    this.__internalSelectionRemove(this.getRowId($row));
+            }
+        },
+
+        /**
          * internal use only
          * @param selectionType  -1:unselect only   1:selection only    0:automatique
          */
         __selectRow : function(row,selectionType){
             if(typeof this.selectable === "number"){
                 if($(row).hasClass("dtec-row-selected" && selectionType !== 1)){
-                    $(row).removeClass("dtec-row-selected");
+                    this.__rowSetSelection($(row),false);
                     return true;
                 }else if( selectionType !== -1 ){
                     if(this.$table.find(".dtec-row-selected").length >= this.selectable){
                         // already reached the max selection
                         return false;
                     }else{
-                        $(row).addClass("dtec-row-selected");
+                        this.__rowSetSelection($(row),true);
                         return true;
                     }
                 }
             }else if(this.selectable === "single"){
                 if($(row).hasClass("dtec-row-selected" && selectionType !== 1)){
-                    $(row).removeClass("dtec-row-selected");
+                    this.__rowSetSelection($(row),false);
                     return true;
                 }else if( selectionType !== -1 ){
                     this.$table.find(".dtec-row-selected").removeClass("dtec-row-selected");
-                    $(row).addClass("dtec-row-selected");
+                    this.__rowSetSelection($(row),true);
                     return true;
                 }
             }else if(this.selectable === "multi" || this.selectable){
                 if( selectionType === 0 ){
-                    $(row).toggleClass("dtec-row-selected");
+                    if($(row).hasClass("dtec-row-selected")){
+                        this.__rowSetSelection($(row),false);
+                    }else{
+                        this.__rowSetSelection($(row),true);
+                    }
                 }else if( selectionType === 1 ){
-                    $(row).addClass("dtec-row-selected");
+                    this.__rowSetSelection($(row),true);
                 }else{
-                    $(row).removeClass("dtec-row-selected");
+                    this.__rowSetSelection($(row),false);
                 }
                 return true;
             }
@@ -308,26 +433,66 @@ var dtEnhanced = function($){
 
 
         rowClicked : function(row,largeSelection){
-            
             var s = this.__makeRowSelection(row,largeSelection);
-            
-            if(s && this.selectionChange){
-                this.selectionChange.apply(this,[]);
+            if(s){
+                this.__updateSelectionCount();
+                if(this.selectionChange)
+                    this.selectionChange.apply(this,[]);
             }
         },
+                
+        /**
+         * refresh the selection number visible by the user (sdom 's' feature)
+         */
+        __updateSelectionCount : function(){
+            var $featureS = $(this.dt.settings()[0].aanFeatures.s[0]);
 
-        getSelectedRows : function(){
+            var countTotal  = this.countSelection();
+            var countVisible= this.getSelectedRows().length;
+            
+        
+            
+            var words = "";
+            
+            if(countTotal === 0){
+                words = "no element selected";
+            }else{
+                words = countTotal + " elements selected";
+                if(countTotal > countVisible){
+                    words += " ( " + countVisible + "<span class='dtec-count-now-shown'>+" + (countTotal-countVisible) + "</span> )";
+                }
+                
+            }
 
-            var rows = this.$table.dataTable().fnGetNodes();
-            var selRows = [];
-
-            for(var i in rows){
-                if( $(rows[i]).hasClass("dtec-row-selected") )
-                    selRows.push(rows[i]);
-            } 
-            return selRows;
+            $featureS.html(words);
         },
 
+        countSelection : function(){
+    
+            if(this.keepSelection){
+                var length = 0;
+                for (var i in this.internalSelection) {
+                    length++;
+                }
+                return length;
+            }else
+                return this.getSelectedRows().length;
+        },
+
+        /**
+         * get selected rows dom element, but only visibles one
+         * @returns {Array}
+         */
+        getSelectedRows : function(){
+            var $rows = this.$table.find(".dtec-row-selected");
+            
+            return $rows;
+        },
+
+        /**
+         * get the selection across the whole table (if keepSelection otpion is enabled)
+         * returns only the datasets, not the dom element
+         */
         getSelection :function(){
             
             var items = [];
@@ -352,6 +517,7 @@ var dtEnhanced = function($){
         },
 
         show : function(elm,dtConfig){
+
             var self = this;
 
             $(elm).html(this.$table);
@@ -364,6 +530,12 @@ var dtEnhanced = function($){
             };
 
             this.dt = this.$table.DataTable(dtConfig);
+            
+            // bind the draw event
+            this.$table.on("draw.dt",function(e,settings){
+                self.__onDraw(e,settings);
+            });
+            
         }
     };
 
@@ -477,6 +649,8 @@ var dtEnhanced = function($){
         
         this.clear();
         
+        self.$table.dataTable()._fnProcessingDisplay(true);
+        
         $.ajax(this.ajax).success(function(data){
             
             if(self.dataHandler)
@@ -501,11 +675,18 @@ var dtEnhanced = function($){
                 self.addItem(items[i]);
             }
             
+        }).done(function(){
+            self.$table.dataTable()._fnProcessingDisplay(false);
         });
         
     };
 
     dtEnhanced.Ajaxtable.prototype.show = function(elm,config){
+        
+        config = config || {};
+        
+        config.processing = true;
+        
         dtEnhanced.table.prototype.show.apply(this,[elm,config]);
         
         if(this.autoload)
@@ -585,7 +766,7 @@ var dtEnhanced = function($){
             "searchable": true,
             "orderable" : true,
             "visible"   : true,
-            "type"        : "string"
+            "type"      : "string"
         };
 
         // if not an object then it is the name only
@@ -600,6 +781,8 @@ var dtEnhanced = function($){
             jQuery.extend(this,defaultConfig,config);
 
         }
+
+        this.orderDataType = this.type;
 
     };
 
