@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Datatable Enhanced by SneakyBobito</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Datatable Enhanced</h1>
+          <h2>A jquery datatable Wrapper</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/SneakyBobito/jquery.datatable.enhanced-control/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/SneakyBobito/jquery.datatable.enhanced-control/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/SneakyBobito/jquery.datatable.enhanced-control" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="simple-jquery-datatable-control" class="anchor" href="#simple-jquery-datatable-control"><span class="octicon octicon-link"></span></a>Simple jQuery Datatable Control</h1>
+
+<p>This package offers you a simple way to use jquery.datatable. 
+It gives a fast access to selectable rows, allows to get the selection and adding items.</p>
+
+<p><strong>BETA VERSION</strong> : feel free to repport any bug</p>
+
+<h2>
+<a name="requirement" class="anchor" href="#requirement"><span class="octicon octicon-link"></span></a>Requirement</h2>
+
+<p>You just have to include jQuery and jQuery.dataTable. 
+You may use any theme you want for datatable.</p>
+
+<p>** Example of minimal requirement**</p>
+
+<div class="highlight highlight-html"><pre>
+    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span>  <span class="na">href=</span><span class="s">"jquery.dataTables.css"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span>  <span class="na">href=</span><span class="s">"dt.enhanced-controller.css"</span><span class="nt">/&gt;</span>
+
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"jquery-1.11.0.min.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"jquery.dataTables.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"./dt.enhanced-controller.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+
+</pre></div>
+
+<h2>
+<a name="basic-usage" class="anchor" href="#basic-usage"><span class="octicon octicon-link"></span></a>Basic Usage</h2>
+
+<p>The whole thing is controlable directly from javascript.</p>
+
+<div class="highlight highlight-javascript"><pre>
+    <span class="nx">dt</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">dtEnhanced</span><span class="p">.</span><span class="nx">table</span><span class="p">({</span>
+
+        <span class="nx">fields</span><span class="o">:</span><span class="p">[</span><span class="s2">"id"</span><span class="p">,</span><span class="s2">"first-name"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="p">],</span>
+        <span class="nx">data</span>  <span class="o">:</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">"id"</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span><span class="s2">"first-name"</span><span class="o">:</span><span class="s2">"john"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="o">:</span><span class="s2">"doe"</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">"id"</span><span class="o">:</span><span class="mi">2</span><span class="p">,</span><span class="s2">"first-name"</span><span class="o">:</span><span class="s2">"unknown"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="o">:</span><span class="s2">"smith"</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">"id"</span><span class="o">:</span><span class="mi">2</span><span class="p">,</span><span class="s2">"first-name"</span><span class="o">:</span><span class="s2">"bob"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="o">:</span><span class="s2">""</span><span class="p">}</span>
+        <span class="p">]</span> 
+
+    <span class="p">});</span>
+
+    <span class="nx">dt</span><span class="p">.</span><span class="nx">show</span><span class="p">(</span><span class="s2">"#mydatatable"</span><span class="p">);</span> <span class="c1">// append the table in the element with id "mydatatable"</span>
+
+</pre></div>
+
+<p><strong>Render</strong> </p>
+
+<p><img src="../master/screens/readme-fig1.png?raw=true" alt="Image"></p>
+
+<h2>
+<a name="manipulation-of-the-selected-rows" class="anchor" href="#manipulation-of-the-selected-rows"><span class="octicon octicon-link"></span></a>Manipulation of the selected rows</h2>
+
+<p>This library allows you to check some rows by clicking them. Then you can get the selection.</p>
+
+<p>Just add "x" in the field configuration and a button : </p>
+
+<div class="highlight highlight-javascript"><pre>
+<span class="nx">dt</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">dtEnhanced</span><span class="p">.</span><span class="nx">table</span><span class="p">({</span>
+
+        <span class="nx">fields</span><span class="o">:</span><span class="p">[</span><span class="s2">"x"</span><span class="p">,</span><span class="s2">"id"</span><span class="p">,</span><span class="s2">"first-name"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="p">],</span>
+        <span class="nx">data</span>  <span class="o">:</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">"id"</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span><span class="s2">"first-name"</span><span class="o">:</span><span class="s2">"john"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="o">:</span><span class="s2">"doe"</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">"id"</span><span class="o">:</span><span class="mi">2</span><span class="p">,</span><span class="s2">"first-name"</span><span class="o">:</span><span class="s2">"unknown"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="o">:</span><span class="s2">"smith"</span><span class="p">},</span>
+            <span class="p">{</span><span class="s2">"id"</span><span class="o">:</span><span class="mi">2</span><span class="p">,</span><span class="s2">"first-name"</span><span class="o">:</span><span class="s2">"bob"</span><span class="p">,</span><span class="s2">"last-name"</span><span class="o">:</span><span class="s2">""</span><span class="p">}</span>
+        <span class="p">]</span> 
+
+    <span class="p">});</span>
+
+    <span class="nx">dt</span><span class="p">.</span><span class="nx">show</span><span class="p">(</span><span class="s2">"#mydatatable"</span><span class="p">);</span>
+
+    <span class="nx">$</span><span class="p">(</span><span class="s2">"#myButton"</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">dt</span><span class="p">.</span><span class="nx">getSelection</span><span class="p">());</span>    
+    <span class="p">});</span>
+
+</pre></div>
+
+<p><strong>Render</strong> </p>
+
+<p><img src="../master/screens/readme-fig2.png?raw=true" alt="Image"></p>
+
+<p><strong>Ouput when click</strong> </p>
+
+<p><img src="../master/screens/readme-fig3.png?raw=true" alt="Image"></p>
+
+<h2>
+<a name="customize-datatable-options" class="anchor" href="#customize-datatable-options"><span class="octicon octicon-link"></span></a>Customize dataTable Options</h2>
+
+<p>When calling <code>dt.show("#element")</code> you can use as second parameter the config to pass to the datatable :</p>
+
+<p><code>dt.show("#element",{/*datatable config*/});</code></p>
+
+<p>is equivalent to </p>
+
+<p><code>$("#element").html($(theTable)); $(theTable).datatable({/*datatable config*/});</code></p>
+
+<h2>
+<a name="adding-item-dynamically" class="anchor" href="#adding-item-dynamically"><span class="octicon octicon-link"></span></a>Adding item dynamically</h2>
+
+<p>Once your datatable lives you still can add items with the method </p>
+
+<p><code>dt.addItem(/* one item or an array of items */);</code></p>
+
+<p>For instance you may add items selected in one table to another</p>
+
+<div class="highlight highlight-javascript"><pre>
+<span class="nx">$</span><span class="p">(</span><span class="s2">"#myButton"</span><span class="p">).</span><span class="nx">click</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+
+    <span class="nx">dt1</span><span class="p">.</span><span class="nx">addItem</span><span class="p">(</span> <span class="nx">dt2</span><span class="p">.</span><span class="nx">getSelection</span><span class="p">()</span> <span class="p">);</span>
+    <span class="nx">dt2</span><span class="p">.</span><span class="nx">clearSelection</span><span class="p">();</span> <span class="c1">// =&gt; will be implemented very soon </span>
+
+<span class="p">});</span>
+
+</pre></div>
+
+<p>TODO : include online example</p>
+
+<h2>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h2>
+
+<div class="highlight highlight-javascript"><pre>
+<span class="k">new</span> <span class="nx">dtEnhanced</span><span class="p">.</span><span class="nx">table</span><span class="p">({</span>
+
+    <span class="c1">// The data that will fill the table</span>
+    <span class="c1">// it's an array of objects. Each object will be one row of the table</span>
+    <span class="s2">"data"</span>          <span class="o">:</span> <span class="p">[],</span>
+
+    <span class="c1">// This defines how yo display the data and what data to display</span>
+    <span class="c1">// it's an array of objects. Each object will be one column of the table</span>
+    <span class="c1">// see below for more information about fields</span>
+    <span class="s2">"fields"</span>        <span class="o">:</span> <span class="p">[],</span>
+
+    <span class="c1">// handler triggered when the selection changes</span>
+    <span class="s2">"selectionChange"</span> <span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">getSelection</span><span class="p">());</span>
+    <span class="p">},</span>
+
+    <span class="c1">// Defines if the rows are selectable</span>
+    <span class="c1">// Possible values :</span>
+    <span class="c1">//  - "single"  : only one row can be selected</span>
+    <span class="c1">//  - "multi"   : unbound number of rows can be selected</span>
+    <span class="c1">//  - false     : no selection</span>
+    <span class="c1">//  - int value : define the max number of rows that can be selected</span>
+    <span class="s2">"selectable"</span>    <span class="o">:</span> <span class="s2">"single"</span>
+<span class="p">});</span>
+
+</pre></div>
+
+<h2>
+<a name="fields-configuration" class="anchor" href="#fields-configuration"><span class="octicon octicon-link"></span></a>Fields Configuration</h2>
+
+<p>A field is a column of the table. In the configuration a field can be either of :</p>
+
+<ul>
+<li>an object configuration : see options below</li>
+<li>a string : see below for example</li>
+<li>an instance of dtEnhanced.field</li>
+<li>a special string : "x" for selection checkbox</li>
+</ul><div class="highlight highlight-javascript"><pre>
+    <span class="s2">"fields"</span>  <span class="o">:</span> <span class="p">[</span>
+
+        <span class="c1">// Object configuration case</span>
+        <span class="p">{</span>
+            <span class="c1">// name of the key you want to show from the data</span>
+            <span class="c1">// in this case we want to show data["id"]</span>
+            <span class="s2">"name"</span>      <span class="o">:</span> <span class="s2">"id"</span><span class="p">,</span>
+
+            <span class="c1">// width in pixels of the column. Leave it null for auto sizing</span>
+            <span class="s2">"width"</span>     <span class="o">:</span> <span class="mi">5</span><span class="p">,</span>
+
+            <span class="c1">// a render function to customize what we want to show</span>
+            <span class="c1">// if null we just will take the value of data["id"]</span>
+            <span class="c1">// in this example we show the id as a clickable link</span>
+            <span class="s2">"render"</span>    <span class="o">:</span> <span class="kd">function</span><span class="p">(){</span> <span class="k">return</span> <span class="s2">"&lt;a href='http://.../item?id="</span> <span class="o">+</span> <span class="nx">value</span> <span class="o">+</span> <span class="s2">"'&gt;"</span> <span class="o">+</span> <span class="nx">value</span> <span class="o">+</span> <span class="s2">"&lt;/a&gt; "</span><span class="p">;</span> <span class="p">},</span>
+
+            <span class="c1">// The text to show in the header. If null it will be replaced by the value of "name"</span>
+            <span class="s2">"header"</span>    <span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+
+            <span class="c1">// One or more css class to apply to the column ; split by spaces</span>
+            <span class="c1">// usable in css or js with : "table.dataTable&gt;tr&gt;td.myclass"</span>
+            <span class="s2">"class"</span>     <span class="o">:</span> <span class="s2">"myclass"</span>
+        <span class="p">},</span>
+
+
+
+        <span class="c1">// string case</span>
+        <span class="c1">// this is a shortcut for {"name":"first-name"}</span>
+        <span class="s2">"first-name"</span><span class="p">,</span> 
+
+
+
+        <span class="c1">// instance of dtEnhanced.field case</span>
+        <span class="k">new</span> <span class="nx">dtEnhanced</span><span class="p">.</span><span class="nx">field</span><span class="p">({</span><span class="s2">"name"</span> <span class="o">:</span> <span class="s2">"last-name"</span><span class="p">}),</span>
+
+        <span class="c1">// special string "x" case</span>
+        <span class="c1">// this is a shortcut for new dtEnhanced.checkboxField();</span>
+        <span class="s2">"x"</span>
+
+    <span class="p">]</span>
+
+</pre></div>
+
+<h2>
+<a name="roadmap" class="anchor" href="#roadmap"><span class="octicon octicon-link"></span></a>ROADMAP</h2>
+
+<ul>
+<li>[x] Field.class usable with a callback</li>
+<li>[ ] intuitive serverside processing</li>
+<li>[x] shift click for multi select</li>
+<li>[ ] removeItem()</li>
+<li>[ ] clearSelection()</li>
+<li>[ ] column order</li>
+<li>[ ] serialisation</li>
+<li>[ ] un/select all row from header</li>
+<li>[ ] some examples online : github page</li>
+<li>[ ] bower inclusion</li>
+<li>[ ] minification</li>
+<li>[x] searcheable / visible / orderable columns</li>
+<li>[ ] groupable headers</li>
+<li>[ ] row callback for customizing tr class (eg : one color per row type)</li>
+<li>[ ] row grouping</li>
+<li>[x] row detail (show/hide)</li>
+<li>[ ] tooltip</li>
+<li>[ ] colmun alignment</li>
+<li>[ ] update the readme</li>
+<li>[x] make datatable api easyly reachable</li>
+<li>[ ] check requirement (jquery/datatable and plugins)</li>
+<li>[x] selection memory</li>
+<li>[x] selection count in sdom</li>
+</ul>
+        </section>
+
+        <footer>
+          Datatable Enhanced is maintained by <a href="https://github.com/SneakyBobito">SneakyBobito</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
