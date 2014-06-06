@@ -242,3 +242,4 @@ ROADMAP
 * [ ] colmun alignment
 * [ ] update the readme
 * [x] make datatable api easyly reachable
+* [ ] check requirement (jquery/datatable and plugins)
