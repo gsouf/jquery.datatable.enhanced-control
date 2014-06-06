@@ -243,3 +243,5 @@ ROADMAP
 * [ ] update the readme
 * [x] make datatable api easyly reachable
 * [ ] check requirement (jquery/datatable and plugins)
+* [x] selection memory
+* [x] selection count in sdom
