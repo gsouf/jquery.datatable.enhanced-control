@@ -445,6 +445,12 @@ var dtEnhanced = function($){
          * refresh the selection number visible by the user (sdom 's' feature)
          */
         __updateSelectionCount : function(){
+
+            var featureS = this.dt.settings()[0].aanFeatures.s;
+
+            if( !featureS )
+                return false;
+      
             var $featureS = $(this.dt.settings()[0].aanFeatures.s[0]);
 
             var countTotal  = this.countSelection();
@@ -465,6 +471,7 @@ var dtEnhanced = function($){
             }
 
             $featureS.html(words);
+
         },
 
         countSelection : function(){
@@ -499,9 +506,9 @@ var dtEnhanced = function($){
 
             var rows = this.getSelectedRows();
 
-            for(var i in rows){
-                items.push($(rows[i]).data("dtec-set"));
-            }
+            rows.each(function(i,item){
+                items.push($(item).data("dtec-set"));
+            });
 
             return items;
         },
@@ -656,10 +663,16 @@ var dtEnhanced = function($){
             if(self.dataHandler)
                 data = self.dataHandler(data);
             else{
-                try{
-                    data = JSON.parse(data);
-                }catch(e){
-                    console.error("cant parse data from ajax request : " + self.ajax.url);
+
+		if(typeof data !== 'object'){
+
+                    try{
+                        data = JSON.parse(data);
+                    }catch(e){
+                        console.error("cant parse data from ajax request : " + self.ajax.url + " | trace :");
+                        console.log(e);
+                    }
+
                 }
             }
             
@@ -683,7 +696,7 @@ var dtEnhanced = function($){
 
     dtEnhanced.Ajaxtable.prototype.show = function(elm,config){
         
-        config = config || {};
+        config = config || {};
         
         config.processing = true;
         
