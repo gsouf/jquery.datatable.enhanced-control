@@ -896,32 +896,13 @@ var dtEnhanced = function($){
 
         dtEnhanced.field.apply(this,[config]);
         this.width   = config.width || 15;
-        this.content = config.content || "+";
+        this.content = config.content || "<div class='dtec-details-control'></div>";
 
     };
 
     dtEnhanced.detailsControlField.prototype = Object.create(dtEnhanced.field.prototype);
 
-    dtEnhanced.detailsControlField.prototype.makeBodyCol = function(table,set){
-        var $div = $("<div/>");
-        var self = this;
-        var $content = $("<div class='dtec-details-control'/>");
 
-
-        if(this.render)
-            $div.html(this.render(set[this.name],set,table.getItems));
-        else if(this.content){
-            if(( typeof(this.content) === "function" )){
-                $content.html(this.content(set , table.getItems() , table.data ));
-            }else{
-                $content.html(this.content);
-            }
-        }
-        
-        $content.appendTo($div);
-        
-        return $div;
-    };
     
     dtEnhanced.detailsControlField.prototype.bindCol = function(table,td){
 
