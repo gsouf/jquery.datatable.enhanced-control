@@ -80,7 +80,7 @@ ROADMAP
 * [ ] row callback for customizing tr class (eg : one color per row type)
 * [ ] row grouping
 * [x] row detail (show/hide)
-* [ ] tooltip
+* [x] tooltip
 * [ ] colmun alignment
 * [ ] update the readme
 * [x] make datatable api easyly reachable
