@@ -9,7 +9,7 @@ $.fn.dataTableExt.aoFeatures.push( {
     
     "fnInit" : function( oSettings ){
         
-        var $node = $("<div/>",{ class : "dataTables_selection" , text : "no selection"});
+        var $node = $("<div/>",{ "class" : "dataTables_selection" , text : "no selection"});
         
         return $node;
         
@@ -254,11 +254,21 @@ var dtEnhanced = function($){
             var $tr = $(tr);
             var self  = this;
             // CLICK HANDLER
-            $tr.mousedown(function(e){
-                self.rowClicked(this,e.shiftKey);
 
-                if(e.shiftKey){
-                    e.preventDefault();
+            $tr.mousedown(function(e){
+
+                var $td = $(e.target);
+                if(!$td.is("td")){
+                    $td = $td.closest("td");
+                }
+
+                if(!$td.hasClass("dtec-noselect")){
+
+                    self.rowClicked(this,e.shiftKey);
+
+                    if(e.shiftKey){
+                        e.preventDefault();
+                    }
                 }
             });
             // STORE THE SET TO FIND IT LATER
@@ -445,6 +455,12 @@ var dtEnhanced = function($){
          * refresh the selection number visible by the user (sdom 's' feature)
          */
         __updateSelectionCount : function(){
+
+            var featureS = this.dt.settings()[0].aanFeatures.s;
+
+            if( !featureS )
+                return false;
+      
             var $featureS = $(this.dt.settings()[0].aanFeatures.s[0]);
 
             var countTotal  = this.countSelection();
@@ -465,6 +481,7 @@ var dtEnhanced = function($){
             }
 
             $featureS.html(words);
+
         },
 
         countSelection : function(){
@@ -499,9 +516,9 @@ var dtEnhanced = function($){
 
             var rows = this.getSelectedRows();
 
-            for(var i in rows){
-                items.push($(rows[i]).data("dtec-set"));
-            }
+            rows.each(function(i,item){
+                items.push($(item).data("dtec-set"));
+            });
 
             return items;
         },
@@ -656,10 +673,16 @@ var dtEnhanced = function($){
             if(self.dataHandler)
                 data = self.dataHandler(data);
             else{
-                try{
-                    data = JSON.parse(data);
-                }catch(e){
-                    console.error("cant parse data from ajax request : " + self.ajax.url);
+
+		if(typeof data !== 'object'){
+
+                    try{
+                        data = JSON.parse(data);
+                    }catch(e){
+                        console.error("cant parse data from ajax request : " + self.ajax.url + " | trace :");
+                        console.log(e);
+                    }
+
                 }
             }
             
@@ -872,7 +895,7 @@ var dtEnhanced = function($){
     dtEnhanced.detailsControlField = function(config){
 
         dtEnhanced.field.apply(this,[config]);
-        this.width   = 15;
+        this.width   = config.width || 15;
         this.content = config.content || "+";
 
     };
@@ -883,8 +906,11 @@ var dtEnhanced = function($){
         var $div = $("<div/>");
         var self = this;
         var $content = $("<div class='dtec-details-control'/>");
-        
-        if(this.content){
+
+
+        if(this.render)
+            $div.html(this.render(set[this.name],set,table.getItems));
+        else if(this.content){
             if(( typeof(this.content) === "function" )){
                 $content.html(this.content(set , table.getItems() , table.data ));
             }else{
@@ -898,6 +924,10 @@ var dtEnhanced = function($){
     };
     
     dtEnhanced.detailsControlField.prototype.bindCol = function(table,td){
+
+        var self = this;
+
+        $(td).addClass("dtec-noselect");
 
         $(td).click(function(){
 
@@ -913,14 +943,16 @@ var dtEnhanced = function($){
             }else{
 
                 var callBack = null;
-
                 if(self.childContent){
                     callBack = self.childContent;
                 }else if(dtec.childContent){
                     callBack = dtec.childContent;
                 }
 
-                var content = callBack ? callBack(set , table.getItems() , table.data ) : "";
+                var content = callBack ? callBack($(this).closest("tr").data("dtec-set") ) : "";
+
+                if(!content) content = "";
+
                 row.child( content ).show();
                 $tr.removeClass('shown');
             }
