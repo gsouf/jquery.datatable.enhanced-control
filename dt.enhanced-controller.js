@@ -426,7 +426,10 @@ var dtEnhanced = function($){
                     this.__rowSetSelection($(row),false);
                     return true;
                 }else if( selectionType !== -1 ){
-                    this.$table.find(".dtec-row-selected").removeClass("dtec-row-selected");
+                    var self = this;
+                    this.$table.find(".dtec-row-selected").each(function(i,item){
+                        self.__rowSetSelection($(item),false);
+                    });
                     this.__rowSetSelection($(row),true);
                     return true;
                 }
