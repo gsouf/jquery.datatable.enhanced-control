@@ -211,6 +211,11 @@ var dtEnhanced = function($){
                 var field = fields[i];
 
                 $col = field.makeHeaderCol(this);
+                
+                if(field.hTooltip){
+                    $col.attr('title',field.hTooltip);
+                }
+                
                 $row.append($col);
 
                 var renderCallback = (function ( i , fields ){
@@ -774,7 +779,7 @@ var dtEnhanced = function($){
 
     Possible values for config :
 
-        - field config : name,width,render,header,class,searchable,orderable,visible,type  // only name is mandatory
+        - field config : name,width,render,header,class,searchable,orderable,visible,type,hTooltip,tooltip  // only name is mandatory
         - string => name config alone
 
     */
@@ -849,6 +854,22 @@ var dtEnhanced = function($){
 
         bindCol : function(table,td){
             
+            
+            if(this.tooltip){
+           
+                if(typeof this.tooltip === "string"){
+                    $(td).attr("title",this.tooltip);
+                }else{
+                    
+                    var self = this;
+                    //delay it to wait tr to be fully populated (createdCell is triggered before createdRow)
+                    setTimeout(function(){
+                        $(td).attr("title",self.tooltip( $(td).closest("tr").data("dtec-set") , td));
+                    },500);
+                }
+                
+            }
+            
         }
 
     };
@@ -863,6 +884,7 @@ var dtEnhanced = function($){
 
 
     dtEnhanced.checkboxField = function(config){
+
 
         dtEnhanced.field.apply(this,[config]);
         this.width = 15;
@@ -895,7 +917,7 @@ var dtEnhanced = function($){
     dtEnhanced.detailsControlField = function(config){
 
         dtEnhanced.field.apply(this,[config]);
-        this.width   = config.width || 15;
+        this.width   = config.width || ( config.render ? null : 15);
         this.content = config.content || "<div class='dtec-details-control'></div>";
 
     };
@@ -905,6 +927,8 @@ var dtEnhanced = function($){
 
     
     dtEnhanced.detailsControlField.prototype.bindCol = function(table,td){
+
+        dtEnhanced.field.prototype.bindCol.apply(this,[table,td]);
 
         var self = this;
 
