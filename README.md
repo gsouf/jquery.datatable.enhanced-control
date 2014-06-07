@@ -87,3 +87,5 @@ ROADMAP
 * [ ] check requirement (jquery/datatable and plugins)
 * [x] selection memory
 * [x] selection count in sdom
+* [ ] controls in sdom (view selection + clear all selection)
+* [ ] toolbar
