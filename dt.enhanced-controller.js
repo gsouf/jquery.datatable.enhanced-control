@@ -342,7 +342,12 @@ var dtEnhanced = function($){
                 
         getRowId : function($row){
         
-            return this.getSetId($row.data("dtec-set"));
+            var set = $row.data("dtec-set");
+        
+            if(!set)
+                return null;
+        
+            return this.getSetId(set);
         },
                 
         getSetId : function(set){    
