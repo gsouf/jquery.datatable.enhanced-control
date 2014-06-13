@@ -89,4 +89,5 @@ ROADMAP
 * [x] selection count in sdom
 * [ ] controls in sdom (view selection + clear all selection)
 * [ ] toolbar
-* [ ] use as a select button
+* [ ] use in replacement for a select element (SelectTable)
+* [ ] use it in a form as a select element **PROTOTYPE WORKS**
