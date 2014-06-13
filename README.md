@@ -89,3 +89,4 @@ ROADMAP
 * [x] selection count in sdom
 * [ ] controls in sdom (view selection + clear all selection)
 * [ ] toolbar
+* [ ] use as a select button
