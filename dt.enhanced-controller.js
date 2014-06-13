@@ -76,6 +76,7 @@ var dtEnhanced = function($){
 
     var dtEnhanced = {};
 
+    dtEnhanced.tools = {};
 
 
 /*============== TABLE ==============*/
@@ -96,6 +97,18 @@ var dtEnhanced = function($){
         this.internalSelection = {};
 
         this.lastSelection = null;
+        
+        this.changeHandlers = [];
+        
+        if(this.selectionChange){
+            this.addChangeHandler(this.selectionChange);
+        }
+        
+        this.drawHandler = [];
+        
+        if(this.onDraw){
+            this.addDrawHandler(this.onDraw);
+        }
 
     };
     
@@ -104,6 +117,7 @@ var dtEnhanced = function($){
         "idField"        : null,
         "selectable"     : "single",
         "selectionChange": null,
+        "onDraw"         : null,
         "childContent"   : null,
         "tableClass"     : null,
         "keepSelection"  : true
@@ -155,6 +169,13 @@ var dtEnhanced = function($){
 
         },
                 
+        addChangeHandler : function(handler){
+            this.changeHandlers.push(handler);
+        },
+                
+        addDrawHandler : function(handler){
+            this.drawHandler.push(handler);
+        },
         
         addItem : function(set){
 
@@ -179,7 +200,6 @@ var dtEnhanced = function($){
         _e_addItem : function(item){
             return true;
         },
-                
 
         initTable : function(){
 
@@ -242,18 +262,14 @@ var dtEnhanced = function($){
                     "createdCell"   : createdCallback
                 };
                 
-
-                
                 this.columns[i]._postInitDtColumnDef(this,definition);
                 
                 this.dtColumns.push(definition);
 
             }
- 
             
             return $table;
         },
-
 
         __bindRow : function(set,tr){
             var $tr = $(tr);
@@ -337,6 +353,10 @@ var dtEnhanced = function($){
                 this.__restoreSelection();
 
             this.__updateSelectionCount();
+
+            for(var i=0;i<this.drawHandler.length;i++)
+                this.drawHandler[i].apply(this,[]);
+            
         },
                 
                 
@@ -459,8 +479,9 @@ var dtEnhanced = function($){
             var s = this.__makeRowSelection(row,largeSelection);
             if(s){
                 this.__updateSelectionCount();
-                if(this.selectionChange)
-                    this.selectionChange.apply(this,[]);
+                
+                for(var i=0;i<this.changeHandlers.length;i++)
+                    this.changeHandlers[i].apply(this,[]);
             }
         },
                 
@@ -527,11 +548,9 @@ var dtEnhanced = function($){
             
             var items = [];
 
-            var rows = this.getSelectedRows();
-
-            rows.each(function(i,item){
-                items.push($(item).data("dtec-set"));
-            });
+            for(var i in this.internalSelection){
+                items.push(this.internalSelection[i]);
+            };
 
             return items;
         },
@@ -1029,7 +1048,124 @@ var dtEnhanced = function($){
         return config;
     };
     
-
+    
+    
+    
+    /*========================================*/
+    /*================ TOOLS =================*/
+    
+    /**
+     * 
+     * @param object config
+     * <pre>
+     * 
+     * config example : 
+     * 
+     * {
+     * 
+     *  // string | jqObject
+     *  // an empty select with a name only
+     *  // if you want a multiple select just use multi or number for selection on the table
+     *  // with you want a disabled select, just use false for selection
+     *  "select" : $("#myEmptySelect"), 
+     *  
+     *  
+     *  
+     *  // the can you any of available dtec table object
+     *  // please avoid to use selectionChange. Instead you should use the select DOM element change event 
+     *  "table"     : new Ajaxtable({ /* some config... * /}),
+     *  
+     *  
+     *  
+     *  // default value if nothing is selected in the table
+     *  "defaultValue" : -1,
+     *  
+     *  
+     *  
+     *  // key in the select dataset to use as select value
+     *  "valueDataKey" : "id",  // default to "id"
+     *  
+     *  
+     *  // true : will automatically build a structure and show the table in the place of the select
+     *  // false : do nothing (you will have to call table.show(...);
+     *  // jqueryElement|string:  shortcut for table.show() with the given name/jqElement
+     *  "autoshow" : $("#tableShow"), // default to false
+     *  
+     *  
+     *  // if we should hide the select DOM element
+     *  "hideSelect" : true // default to true
+     *  
+     * }
+     * 
+     * </pre>
+     * 
+     */
+    dtEnhanced.tools.selectFromTable = function(config){
+      
+        var table = config.table;
+        var $select = $(config.select);
+        var defaultValue = config.defaultValue || null;
+        var valueDataKey = config.valueDataKey || "id";
+        var autoshow = config.autoshow || false;
+        var hideSelect = config.hideSelect || true;
+        
+        
+        if(!$select.is("select")){
+            console.error("select element is not valid. Please make sure it is a select element");
+            return false;
+        }
+        
+        $select.empty();
+        
+//        if(hideSelect)
+//            $select.hide();
+        
+        var redrawSelect = function(){
+            
+            if(typeof table.selectable === "number" || table.selectable === "multi"){
+                $select.attr("multiple","");
+            }else{
+                $select.removeAttr("multiple");
+            }
+            
+            if(table.selectable === false){
+                $select.attr("readonly","");
+            }else{
+                $select.removeAttr("readonly");
+            }
+            
+            $select.empty();
+            
+            var selection = table.getSelection();
+            
+            if(null !== defaultValue && selection.length===0){
+                $select.append("<option value='" + defaultValue + "' checked='check' />");
+            }else if(selection.length>0){
+                for(var i=0;i<selection.length;i++){
+                    $select.append("<option value='" + selection[i][valueDataKey] + "' checked='check' />");
+                }
+            }
+            
+            
+            
+        };
+        
+        table.addDrawHandler(function(){
+            redrawSelect();
+        });
+        
+        table.addChangeHandler(function(){
+            redrawSelect();
+        }); 
+        
+        if(autoshow)
+            table.show(autoshow);
+        
+        return table;
+        
+    };
+    
+    
     return dtEnhanced;
 
 }(jQuery);
