@@ -9,7 +9,7 @@ $.fn.dataTableExt.aoFeatures.push( {
     
     "fnInit" : function( oSettings ){
         
-        var $node = $("<div/>",{ class : "dataTables_selection" , text : "no selection"});
+        var $node = $("<div/>",{ "class" : "dataTables_selection" , text : "no selection"});
         
         return $node;
         
@@ -76,6 +76,7 @@ var dtEnhanced = function($){
 
     var dtEnhanced = {};
 
+    dtEnhanced.tools = {};
 
 
 /*============== TABLE ==============*/
@@ -96,6 +97,18 @@ var dtEnhanced = function($){
         this.internalSelection = {};
 
         this.lastSelection = null;
+        
+        this.changeHandlers = [];
+        
+        if(this.selectionChange){
+            this.addChangeHandler(this.selectionChange);
+        }
+        
+        this.drawHandler = [];
+        
+        if(this.onDraw){
+            this.addDrawHandler(this.onDraw);
+        }
 
     };
     
@@ -104,6 +117,7 @@ var dtEnhanced = function($){
         "idField"        : null,
         "selectable"     : "single",
         "selectionChange": null,
+        "onDraw"         : null,
         "childContent"   : null,
         "tableClass"     : null,
         "keepSelection"  : true
@@ -155,6 +169,13 @@ var dtEnhanced = function($){
 
         },
                 
+        addChangeHandler : function(handler){
+            this.changeHandlers.push(handler);
+        },
+                
+        addDrawHandler : function(handler){
+            this.drawHandler.push(handler);
+        },
         
         addItem : function(set){
 
@@ -179,7 +200,6 @@ var dtEnhanced = function($){
         _e_addItem : function(item){
             return true;
         },
-                
 
         initTable : function(){
 
@@ -211,6 +231,11 @@ var dtEnhanced = function($){
                 var field = fields[i];
 
                 $col = field.makeHeaderCol(this);
+                
+                if(field.hTooltip){
+                    $col.attr('title',field.hTooltip);
+                }
+                
                 $row.append($col);
 
                 var renderCallback = (function ( i , fields ){
@@ -237,28 +262,34 @@ var dtEnhanced = function($){
                     "createdCell"   : createdCallback
                 };
                 
-
-                
                 this.columns[i]._postInitDtColumnDef(this,definition);
                 
                 this.dtColumns.push(definition);
 
             }
- 
             
             return $table;
         },
-
 
         __bindRow : function(set,tr){
             var $tr = $(tr);
             var self  = this;
             // CLICK HANDLER
-            $tr.mousedown(function(e){
-                self.rowClicked(this,e.shiftKey);
 
-                if(e.shiftKey){
-                    e.preventDefault();
+            $tr.mousedown(function(e){
+
+                var $td = $(e.target);
+                if(!$td.is("td")){
+                    $td = $td.closest("td");
+                }
+
+                if(!$td.hasClass("dtec-noselect")){
+
+                    self.rowClicked(this,e.shiftKey);
+
+                    if(e.shiftKey){
+                        e.preventDefault();
+                    }
                 }
             });
             // STORE THE SET TO FIND IT LATER
@@ -322,12 +353,21 @@ var dtEnhanced = function($){
                 this.__restoreSelection();
 
             this.__updateSelectionCount();
+
+            for(var i=0;i<this.drawHandler.length;i++)
+                this.drawHandler[i].apply(this,[]);
+            
         },
                 
                 
         getRowId : function($row){
         
-            return this.getSetId($row.data("dtec-set"));
+            var set = $row.data("dtec-set");
+        
+            if(!set)
+                return null;
+        
+            return this.getSetId(set);
         },
                 
         getSetId : function(set){    
@@ -411,7 +451,10 @@ var dtEnhanced = function($){
                     this.__rowSetSelection($(row),false);
                     return true;
                 }else if( selectionType !== -1 ){
-                    this.$table.find(".dtec-row-selected").removeClass("dtec-row-selected");
+                    var self = this;
+                    this.$table.find(".dtec-row-selected").each(function(i,item){
+                        self.__rowSetSelection($(item),false);
+                    });
                     this.__rowSetSelection($(row),true);
                     return true;
                 }
@@ -436,8 +479,9 @@ var dtEnhanced = function($){
             var s = this.__makeRowSelection(row,largeSelection);
             if(s){
                 this.__updateSelectionCount();
-                if(this.selectionChange)
-                    this.selectionChange.apply(this,[]);
+                
+                for(var i=0;i<this.changeHandlers.length;i++)
+                    this.changeHandlers[i].apply(this,[]);
             }
         },
                 
@@ -445,6 +489,12 @@ var dtEnhanced = function($){
          * refresh the selection number visible by the user (sdom 's' feature)
          */
         __updateSelectionCount : function(){
+
+            var featureS = this.dt.settings()[0].aanFeatures.s;
+
+            if( !featureS )
+                return false;
+      
             var $featureS = $(this.dt.settings()[0].aanFeatures.s[0]);
 
             var countTotal  = this.countSelection();
@@ -465,6 +515,7 @@ var dtEnhanced = function($){
             }
 
             $featureS.html(words);
+
         },
 
         countSelection : function(){
@@ -497,11 +548,9 @@ var dtEnhanced = function($){
             
             var items = [];
 
-            var rows = this.getSelectedRows();
-
-            for(var i in rows){
-                items.push($(rows[i]).data("dtec-set"));
-            }
+            for(var i in this.internalSelection){
+                items.push(this.internalSelection[i]);
+            };
 
             return items;
         },
@@ -656,10 +705,16 @@ var dtEnhanced = function($){
             if(self.dataHandler)
                 data = self.dataHandler(data);
             else{
-                try{
-                    data = JSON.parse(data);
-                }catch(e){
-                    console.error("cant parse data from ajax request : " + self.ajax.url);
+
+		if(typeof data !== 'object'){
+
+                    try{
+                        data = JSON.parse(data);
+                    }catch(e){
+                        console.error("cant parse data from ajax request : " + self.ajax.url + " | trace :");
+                        console.log(e);
+                    }
+
                 }
             }
             
@@ -751,7 +806,7 @@ var dtEnhanced = function($){
 
     Possible values for config :
 
-        - field config : name,width,render,header,class,searchable,orderable,visible,type  // only name is mandatory
+        - field config : name,width,render,header,class,searchable,orderable,visible,type,hTooltip,tooltip  // only name is mandatory
         - string => name config alone
 
     */
@@ -826,6 +881,22 @@ var dtEnhanced = function($){
 
         bindCol : function(table,td){
             
+            
+            if(this.tooltip){
+           
+                if(typeof this.tooltip === "string"){
+                    $(td).attr("title",this.tooltip);
+                }else{
+                    
+                    var self = this;
+                    //delay it to wait tr to be fully populated (createdCell is triggered before createdRow)
+                    setTimeout(function(){
+                        $(td).attr("title",self.tooltip( $(td).closest("tr").data("dtec-set") , td));
+                    },500);
+                }
+                
+            }
+            
         }
 
     };
@@ -840,6 +911,7 @@ var dtEnhanced = function($){
 
 
     dtEnhanced.checkboxField = function(config){
+
 
         dtEnhanced.field.apply(this,[config]);
         this.width = 15;
@@ -872,32 +944,22 @@ var dtEnhanced = function($){
     dtEnhanced.detailsControlField = function(config){
 
         dtEnhanced.field.apply(this,[config]);
-        this.width   = 15;
-        this.content = config.content || "+";
+        this.width   = config.width || ( config.render ? null : 15);
+        this.content = config.content || "<div class='dtec-details-control'></div>";
 
     };
 
     dtEnhanced.detailsControlField.prototype = Object.create(dtEnhanced.field.prototype);
 
-    dtEnhanced.detailsControlField.prototype.makeBodyCol = function(table,set){
-        var $div = $("<div/>");
-        var self = this;
-        var $content = $("<div class='dtec-details-control'/>");
-        
-        if(this.content){
-            if(( typeof(this.content) === "function" )){
-                $content.html(this.content(set , table.getItems() , table.data ));
-            }else{
-                $content.html(this.content);
-            }
-        }
-        
-        $content.appendTo($div);
-        
-        return $div;
-    };
+
     
     dtEnhanced.detailsControlField.prototype.bindCol = function(table,td){
+
+        dtEnhanced.field.prototype.bindCol.apply(this,[table,td]);
+
+        var self = this;
+
+        $(td).addClass("dtec-noselect");
 
         $(td).click(function(){
 
@@ -913,14 +975,16 @@ var dtEnhanced = function($){
             }else{
 
                 var callBack = null;
-
                 if(self.childContent){
                     callBack = self.childContent;
                 }else if(dtec.childContent){
                     callBack = dtec.childContent;
                 }
 
-                var content = callBack ? callBack(set , table.getItems() , table.data ) : "";
+                var content = callBack ? callBack($(this).closest("tr").data("dtec-set") ) : "";
+
+                if(!content) content = "";
+
                 row.child( content ).show();
                 $tr.removeClass('shown');
             }
@@ -984,7 +1048,125 @@ var dtEnhanced = function($){
         return config;
     };
     
-
+    
+    
+    
+    /*========================================*/
+    /*================ TOOLS =================*/
+    
+    /**
+     * 
+     * @param object config
+     * <pre>
+     * 
+     * config example : 
+     * 
+     * {
+     * 
+     *  // string | jqObject
+     *  // an empty select with a name only
+     *  // if you want a multiple select just use multi or number for selection on the table
+     *  // with you want a disabled select, just use false for selection
+     *  "select" : $("#myEmptySelect"), 
+     *  
+     *  
+     *  
+     *  // the can you any of available dtec table object
+     *  // please avoid to use selectionChange. Instead you should use the select DOM element change event 
+     *  "table"     : new Ajaxtable({ /* some config... * /}),
+     *  
+     *  
+     *  
+     *  // default value if nothing is selected in the table
+     *  "defaultValue" : -1,
+     *  
+     *  
+     *  
+     *  // key in the select dataset to use as select value
+     *  "valueDataKey" : "id",  // default to "id"
+     *  
+     *  
+     *  // true : will automatically build a structure and show the table in the place of the select
+     *  // false : do nothing (you will have to call table.show(...);
+     *  // jqueryElement|string:  shortcut for table.show() with the given name/jqElement
+     *  "autoshow" : $("#tableShow"), // default to false
+     *  
+     *  
+     *  // if we should hide the select DOM element
+     *  "hideSelect" : true // default to true
+     *  
+     * }
+     * 
+     * </pre>
+     * 
+     */
+    dtEnhanced.tools.selectFromTable = function(config){
+      
+        var table = config.table;
+        var $select = $(config.select);
+        var defaultValue = config.defaultValue || null;
+        var valueDataKey = config.valueDataKey || "id";
+        var autoshow = config.autoshow || false;
+        var hideSelect = config.hideSelect || true;
+        
+        
+        if(!$select.is("select")){
+            console.error("select element is not valid. Please make sure it is a select element");
+            return false;
+        }
+        
+        $select.empty();
+        
+        if(hideSelect)
+            $select.hide();
+        
+        var redrawSelect = function(){
+            
+            if(typeof table.selectable === "number" || table.selectable === "multi"){
+                $select.attr("multiple","");
+            }else{
+                $select.removeAttr("multiple");
+            }
+            
+            if(table.selectable === false){
+                $select.attr("readonly","");
+            }else{
+                $select.removeAttr("readonly");
+            }
+            
+            $select.empty();
+            
+            var selection = table.getSelection();
+            
+            if(null !== defaultValue && selection.length===0){
+                $select.append("<option value='" + defaultValue + "' checked='check' />");
+            }else if(selection.length>0){
+                var selectWord = $select.prop("multiple") ? "selected='selected'" :"checked='checked'";
+                for(var i=0;i<selection.length;i++){
+                    $select.append("<option value='" + selection[i][valueDataKey] + "' " + selectWord + "  >" + selection[i][valueDataKey] + "</option>");
+                }
+            }
+            
+            
+            
+        };
+        
+        table.addDrawHandler(function(){
+            redrawSelect();
+        });
+        
+        table.addChangeHandler(function(){
+            redrawSelect();
+        }); 
+        
+        if(autoshow)
+            table.show(autoshow);
+        
+        return table;
+        
+    };
+    
+    
     return dtEnhanced;
 
 }(jQuery);
