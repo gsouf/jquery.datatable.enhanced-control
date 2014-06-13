@@ -90,4 +90,4 @@ ROADMAP
 * [ ] controls in sdom (view selection + clear all selection)
 * [ ] toolbar
 * [ ] use in replacement for a select element (SelectTable)
-* [ ] use it in a form as a select element **PROTOTYPE WORKS**
+* [ ] use it in a form as a select element **PROTOTYPE WORKS** => needs render and config improvement (replace the select box in the view, open it with a button....)
