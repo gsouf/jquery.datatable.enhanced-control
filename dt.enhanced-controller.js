@@ -554,6 +554,19 @@ var dtEnhanced = function($){
 
             return items;
         },
+        
+        clearSelection : function(){
+        
+            var rows = this.getSelectedRows();
+    
+            for(var i = 0 ; i < rows.length ; i++){
+                this.__rowSetSelection($(rows[i]),false);
+            }
+    
+            this.internalSelection = {};
+            this.__updateSelectionCount();
+    
+        },
                 
         clear : function(){
             if(this._e_clear()){
