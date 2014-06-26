@@ -498,7 +498,7 @@ var dtEnhanced = function($){
                     return true;
                 }else if( selectionType !== -1 ){
                     var self = this;
-                    this.$table.find(".dtec-row-selected").each(function(i,item){
+                    this.getSelectedRows(true).each(function(i,item){
                         self.__rowSetSelection($(item),false);
                     });
                     this.__rowSetSelection($(row),true);
@@ -578,10 +578,14 @@ var dtEnhanced = function($){
 
         /**
          * get selected rows dom element, but only visibles one
+         * to get all rows even those not visible then pass true as first parameter
          * @returns {Array}
          */
-        getSelectedRows : function(){
-            var $rows = this.$table.find(".dtec-row-selected");
+        getSelectedRows : function(all){
+            if(all){
+                var $rows = $(this.$table.dataTable().fnGetNodes());
+            }else
+                var $rows = this.$table.find(".dtec-row-selected");
             
             return $rows;
         },
