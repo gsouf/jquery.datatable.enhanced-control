@@ -416,8 +416,8 @@ var dtEnhanced = function($){
             }
             
             if(initial || undefined === initial){
-                this.__updateSelectionCount();
                 this.__restoreSelection();
+                this.__updateSelectionCount();
             }
                 
         },
@@ -493,7 +493,7 @@ var dtEnhanced = function($){
                     }
                 }
             }else if(this.selectable === "single"){
-                if($(row).hasClass("dtec-row-selected" && selectionType !== 1)){
+                if($(row).hasClass("dtec-row-selected") && selectionType !== 1){
                     this.__rowSetSelection($(row),false);
                     return true;
                 }else if( selectionType !== -1 ){
