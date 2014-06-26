@@ -360,7 +360,11 @@ var dtEnhanced = function($){
             
         },
                 
-                
+        /**
+         * find the id (from dataset) of a given row
+         * @param jQueryDomElement $row the row for which we are searching the id
+         * @returns the id
+         */
         getRowId : function($row){
         
             var set = $row.data("dtec-set");
@@ -370,13 +374,54 @@ var dtEnhanced = function($){
         
             return this.getSetId(set);
         },
-                
+              
+        /**
+         * get the id of a set
+         */
         getSetId : function(set){    
             if(this.idField){
                 return set[this.idField];
             }
             return null;
         },
+                
+        /**
+         * Find a set by its id
+         */
+        getSet : function(id){
+            
+            var nodes = this.$table.dataTable().fnGetNodes();
+            
+            for(var i = 0 ; i<nodes.length ; i++){
+                if(this.getRowId($(nodes[i])) == id )
+                    return $(nodes[i]).data("dtec-set");
+            }
+            return null;
+        },
+                
+        setSelectionById : function(selection,initial){
+    
+            if(initial || undefined === initial)
+                this.clearSelection();
+            
+            if(selection instanceof Array){
+                for(var i = 0 ; i < selection.length ; i++)
+                    this.setSelectionById(selection[i],false);
+            }else{
+                var set = this.getSet(selection);
+                
+                if(set){
+                    this.__internalSelectionAdd(set); 
+                }
+            }
+            
+            if(initial || undefined === initial){
+                this.__updateSelectionCount();
+                this.__restoreSelection();
+            }
+                
+        },
+                
                 
         __restoreSelection : function(){
     
