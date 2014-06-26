@@ -120,7 +120,8 @@ var dtEnhanced = function($){
         "onDraw"         : null,
         "childContent"   : null,
         "tableClass"     : null,
-        "keepSelection"  : true
+        "keepSelection"  : true,
+        "datatable"      : {}
     };
 
         
@@ -481,7 +482,7 @@ var dtEnhanced = function($){
                 this.__updateSelectionCount();
                 
                 for(var i=0;i<this.changeHandlers.length;i++)
-                    this.changeHandlers[i].apply(this,[]);
+                    this.changeHandlers[i].apply(this,[this.getSelection()]);
             }
         },
                 
@@ -554,7 +555,7 @@ var dtEnhanced = function($){
 
             return items;
         },
-        
+                
         clearSelection : function(){
         
             var rows = this.getSelectedRows();
@@ -590,6 +591,9 @@ var dtEnhanced = function($){
             dtConfig.createdRow = function(row,data,index){
                 self.__bindRow(data,row);
             };
+         
+            
+            $.extend(dtConfig,this.datatable);
 
             this.dt = this.$table.DataTable(dtConfig);
             
@@ -1130,8 +1134,8 @@ var dtEnhanced = function($){
         
         $select.empty();
         
-//        if(hideSelect)
-//            $select.hide();
+        if(hideSelect)
+            $select.hide();
         
         var redrawSelect = function(){
             
@@ -1154,8 +1158,9 @@ var dtEnhanced = function($){
             if(null !== defaultValue && selection.length===0){
                 $select.append("<option value='" + defaultValue + "' checked='check' />");
             }else if(selection.length>0){
+                var selectWord = $select.prop("multiple") ? "selected='selected'" :"checked='checked'";
                 for(var i=0;i<selection.length;i++){
-                    $select.append("<option value='" + selection[i][valueDataKey] + "' checked='check' />");
+                    $select.append("<option value='" + selection[i][valueDataKey] + "' " + selectWord + "  >" + selection[i][valueDataKey] + "</option>");
                 }
             }
             
