@@ -3,19 +3,38 @@
 
 // ===== DATATABLE EXTEND ===== //
 
+// selection count
 $.fn.dataTableExt.aoFeatures.push( {
     
     "cFeature" : "s",
     
     "fnInit" : function( oSettings ){
         
-        var $node = $("<div/>",{ "class" : "dataTables_selection" , text : "no selection"});
+        var language = oSettings.oLanguage;
+        
+        var $node = $("<div/>",{ "class" : "dataTables_selection" , text : language.sSelectionEmpty});
         
         return $node;
         
     }
 
 });
+
+// title
+$.fn.dataTableExt.aoFeatures.push( {
+    
+    "cFeature" : "N", // N for Name
+    
+    "fnInit" : function( oSettings ){
+        
+        var $node = $("<div/>",{ "class" : "dataTables_name" , text : ""});
+        
+        return $node;
+        
+    }
+
+});
+
 
 
 // =============================//
@@ -34,6 +53,8 @@ $.fn.dataTableExt.aoFeatures.push( {
         itemsRoot:"items",
 
         tableClass : "additional-custom-class",
+
+        title : "My title",
 
         columns: [
     
@@ -121,7 +142,8 @@ var dtEnhanced = function($){
         "childContent"   : null,
         "tableClass"     : null,
         "keepSelection"  : true,
-        "datatable"      : {}
+        "datatable"      : {},
+        "title"          : null
     };
 
         
@@ -537,6 +559,8 @@ var dtEnhanced = function($){
         __updateSelectionCount : function(){
 
             var featureS = this.dt.settings()[0].aanFeatures.s;
+            var language = this.dt.settings()[0].oLanguage;
+            
 
             if( !featureS )
                 return false;
@@ -551,9 +575,9 @@ var dtEnhanced = function($){
             var words = "";
             
             if(countTotal === 0){
-                words = "no element selected";
+                words = language.sSelectionEmpty;
             }else{
-                words = countTotal + " elements selected";
+                words = language.sSelectionCount.replace("_COUNT_",countTotal);
                 if(countTotal > countVisible){
                     words += " ( " + countVisible + "<span class='dtec-count-now-shown'>+" + (countTotal-countVisible) + "</span> )";
                 }
@@ -650,6 +674,16 @@ var dtEnhanced = function($){
             this.$table.on("draw.dt",function(e,settings){
                 self.__onDraw(e,settings);
             });
+            
+            
+            // title (name) feature
+            var featureN = this.dt.settings()[0].aanFeatures.N;
+            if( featureN && this.title ){
+                var $featureN = $(this.dt.settings()[0].aanFeatures.N[0]);
+                $featureN.html(this.title);
+            }
+
+            
             
         }
     };
