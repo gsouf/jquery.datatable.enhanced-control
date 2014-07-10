@@ -879,7 +879,7 @@ var dtEnhanced = function($){
         "dataHandler"    : null
     };
 
-    dtEnhanced.Ajaxtable.prototype.reload = function(){
+    dtEnhanced.Ajaxtable.prototype.reload = function(successCallback){
         
         var self = this;
         
@@ -915,6 +915,11 @@ var dtEnhanced = function($){
             
             for(var i in items){
                 self.addItem(items[i]);
+            }
+            
+            
+            if(successCallback){
+                successCallback.apply(null,[self]);
             }
             
         }).done(function(){
