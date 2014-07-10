@@ -421,6 +421,20 @@ var dtEnhanced = function($){
             return null;
         },
                 
+        getAllSets : function(){
+            
+            var setList = [];
+            
+            var nodes = this.$table.dataTable().fnGetNodes();
+            
+            for(var i = 0 ; i<nodes.length ; i++){
+                setList.push($(nodes[i]).data("dtec-set"));
+            }
+            
+            return setList;
+            
+        },
+                
         setSelectionById : function(selection,initial){
     
             if(initial || undefined === initial)
@@ -665,8 +679,14 @@ var dtEnhanced = function($){
                 self.__bindRow(data,row);
             };
          
+         
+            if(this.tbar)
+                dtConfig.tbar = this.tbar;
+            
             
             $.extend(dtConfig,this.datatable);
+
+            console.log(dtConfig);
 
             this.dt = this.$table.DataTable(dtConfig);
             
