@@ -220,9 +220,59 @@ var dtEnhanced = function($){
 
         },
                 
+        __removeOneItem : function(input){
+    
+            var row;
+            var set;
+    
+            if(typeof input === 'object'){
+                
+                if(input.jquery){
+                    row = input;
+                    set = row.data("dtec-set");
+                }else if(input.nodeType && input.nodeType == 1 && !this.getSetId(input) ){ // DOMElement
+                    row = $(input);
+                    set = row.data("dtec-set");
+                }else{
+                    set = input;
+                    row = this.getRow(this.getSetId(set));
+                }
+                
+            }else{
+                row = this.getRow(input);
+                set = row.data("dtec-set");
+            }
+            
+            if(!row || !set)
+                return;
+            
+            if(this._e_removeItem(set,row)){
+                this.dt.row(row).remove();
+            }
+        },
+        
+        
+        removeItem : function(input){
+            if(input instanceof Array){
+                for(var i = 0;i<input.length;i++){
+                    this.__removeOneItem(input[i]);
+                }
+            }else{
+                this.__removeOneItem(input);
+            }
+            
+            this.dt.draw();
+            
+        },
+                
         _e_addItem : function(item){
             return true;
         },
+
+        _e_removeItem : function(set,row){
+            return true;
+        },
+
 
         initTable : function(){
 
@@ -412,14 +462,31 @@ var dtEnhanced = function($){
          */
         getSet : function(id){
             
+            return this.__get(id,"set");
+            
+        },
+                
+        
+        /**
+         * Find a row by its id set
+         */
+        getRow : function(id){
+            
+            return this.__get(id,"row");
+        },
+                
+        __get : function(id,setOrRow){
+            
             var nodes = this.$table.dataTable().fnGetNodes();
             
             for(var i = 0 ; i<nodes.length ; i++){
                 if(this.getRowId($(nodes[i])) == id )
-                    return $(nodes[i]).data("dtec-set");
+                    return setOrRow === "row" ? $(nodes[i]) : $(nodes[i]).data("dtec-set");
             }
             return null;
+            
         },
+                
                 
         getAllSets : function(){
             
