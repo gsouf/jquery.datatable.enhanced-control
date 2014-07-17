@@ -56,6 +56,13 @@ $.fn.dataTableExt.aoFeatures.push( {
 
         title : "My title",
 
+        rowClass : function(set){
+            if(set["status"] == "ERROR")
+                return "row-error";
+
+            return "row-ok";
+        },
+
         columns: [
     
             {   
@@ -143,7 +150,8 @@ var dtEnhanced = function($){
         "tableClass"     : null,
         "keepSelection"  : true,
         "datatable"      : {},
-        "title"          : null
+        "title"          : null,
+        "rowClass"       : null
     };
 
         
@@ -347,8 +355,9 @@ var dtEnhanced = function($){
         __bindRow : function(set,tr){
             var $tr = $(tr);
             var self  = this;
+            
+            
             // CLICK HANDLER
-
             $tr.mousedown(function(e){
 
                 var $td = $(e.target);
@@ -365,10 +374,22 @@ var dtEnhanced = function($){
                     }
                 }
             });
+            
+            
             // STORE THE SET TO FIND IT LATER
-            
-            
             $tr.data("dtec-set",set);
+            
+            
+            // SET THE CUSTOM CLASS
+            if(this.rowClass){
+                
+                var rowClass = this.rowClass.apply(this,[set]);
+                
+                if(rowClass)
+                    $tr.addClass(rowClass);
+                
+            }
+            
         },
 
         // reserved for internal use
@@ -753,7 +774,6 @@ var dtEnhanced = function($){
             
             $.extend(dtConfig,this.datatable);
 
-            console.log(dtConfig);
 
             this.dt = this.$table.DataTable(dtConfig);
             
@@ -1183,7 +1203,7 @@ var dtEnhanced = function($){
 
         });
         
-    }
+    };
     
     
     /*============== HELPER parseColumns ==============*/
