@@ -63,6 +63,8 @@ $.fn.dataTableExt.aoFeatures.push( {
             return "row-ok";
         },
 
+        searchBarTop : true,
+
         columns: [
     
             {   
@@ -75,6 +77,7 @@ $.fn.dataTableExt.aoFeatures.push( {
                 orderable   : true,
                 visible     : true,
                 type        : "string",
+                searcher    : true
                 
             },
             
@@ -151,7 +154,8 @@ var dtEnhanced = function($){
         "keepSelection"  : true,
         "datatable"      : {},
         "title"          : null,
-        "rowClass"       : null
+        "rowClass"       : null,
+        "searchBarTop"   : false
     };
 
         
@@ -304,14 +308,14 @@ var dtEnhanced = function($){
             $table.data("dtec-object",this);
 
             // CREATE THE HEADER
-            $row = $("<tr/>");
+            var $row = $("<tr/>");
             $thead.append($row);
 
             for(var i in fields){
 
                 var field = fields[i];
 
-                $col = field.makeHeaderCol(this);
+                var $col = field.makeHeaderCol(this);
                 
                 if(field.hTooltip){
                     $col.attr('title',field.hTooltip);
@@ -327,7 +331,8 @@ var dtEnhanced = function($){
 
                 var createdCallback = (function ( i , fields ){
                     return function ( cell, cellData, rowData, rowIndex, colIndex ) {
-                        fields[i].bindCol( self , cell );
+                        fields[i].bindCol( self , cell , cellData , rowData );
+                        fields[i].colClass( self , cell , cellData , rowData );
                     };
                 }(i,fields));
 
@@ -342,12 +347,58 @@ var dtEnhanced = function($){
                     "render"        : renderCallback,
                     "createdCell"   : createdCallback
                 };
+
+                console.log(definition);
                 
                 this.columns[i]._postInitDtColumnDef(this,definition);
                 
                 this.dtColumns.push(definition);
 
             }
+            
+            
+            
+            // Is there a top search bar ?
+            
+            if(this.searchBarTop){
+                
+                var $row = $("<tr class='dtec-search-bar'/>");
+                $thead.append($row);
+
+                for(var i in fields){
+
+                    var field = fields[i];
+
+                    var searcher = field.searcherInstance;
+
+                    if(!searcher){
+                        $("<th/>").appendTo($row);
+                        continue;
+                    }
+                    
+                    var $col = $("<th/>");
+                    
+                    $col.append(searcher.draw()).appendTo($row);
+
+                    searcher.addChangeHandler(
+                        function ( fields,i ){
+                            return function(value){
+
+                             
+
+                                self.dt
+                                    .column(i)
+                                    .search(value)
+                                    .draw();
+                            };
+                        }(fields,i)
+                    );
+
+                }
+                
+                
+            }
+            
             
             return $table;
         },
@@ -763,6 +814,7 @@ var dtEnhanced = function($){
             dtConfig = dtConfig || {};
 
             dtConfig.columns    = this.dtColumns;
+            dtConfig.bSortCellsTop = true; // needed for top filtering  : http://legacy.datatables.net/ref#bSortCellsTop
             dtConfig.createdRow = function(row,data,index){
                 self.__bindRow(data,row);
             };
@@ -913,7 +965,7 @@ var dtEnhanced = function($){
                 data = self.dataHandler(data);
             else{
 
-		if(typeof data !== 'object'){
+        if(typeof data !== 'object'){
 
                     try{
                         data = JSON.parse(data);
@@ -1012,13 +1064,156 @@ var dtEnhanced = function($){
     };
 
 
+
+
+
+
+
+
+
+
+
+
+
+/*============== SEARCHER ==============*/
+
+    dtEnhanced.searcher = function(config){
+
+        var defaultConfig = {
+            "class" : null
+        };
+        
+        jQuery.extend(this,defaultConfig,config);
+
+        this.$drawElement = null;
+        this.cloneList = null;
+
+        this.changeHandlers = [];
+        this.value = null;
+    };
+
+    dtEnhanced.searcher.prototype = {
+
+        draw : function(){
+            
+            if(!this.$drawElement){
+                this.$drawElement = this.__draw();
+                this.cloneList = this.$drawElement;
+            }
+
+
+            var cloneElement = this.$drawElement.clone();
+
+            this.cloneList = this.cloneList.add(cloneElement);
+
+            console.log(this.cloneList);
+
+            this.__bind(cloneElement);
+
+            return cloneElement;
+            
+        },
+                
+        addChangeHandler : function(handler){
+            this.changeHandlers.push(handler);
+        },
+
+        getValue : function(){
+            return "";
+        },
+
+        getRegexp : function(){
+            return "";
+        },
+
+        valueChanged : function(value){
+
+            if(value === this.value)
+                return;
+
+            this.__update(this.cloneList,value);
+            this.value = value;
+            for(var i = 0;i<this.changeHandlers.length;i++){
+
+                this.changeHandlers[i].apply(this,[value]);
+
+            }
+        },
+
+
+
+        // OVERIDES 
+        __draw : function(){
+            console.error("Children of searcher must overide __draw mehtod");
+        },
+
+        __bind : function(){},
+
+        __update : function(){}
+
+
+    };
+
+/*============== searcher.TEXT ==============*/
+
+    dtEnhanced.searcher.Text = function(config){
+
+        dtEnhanced.searcher.apply(this,[config]);
+
+    };
+
+    dtEnhanced.searcher.Text.prototype = Object.create(dtEnhanced.searcher.prototype);
+
+    dtEnhanced.searcher.Text.prototype.__draw = function(){
+        var $elm = $("<input type='text'/>");
+        return $elm;
+    };
+
+
+    dtEnhanced.searcher.Text.prototype.__bind = function($elm){
+        var self = this;
+
+        $elm.on( 'input',function(){
+            self.valueChanged($(this).val());
+        });
+    };
+
+    dtEnhanced.searcher.Text.prototype.__update = function($elments,value){
+
+
+        $elments.val(value);
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*============== FIELD ==============*/
 
     /**
 
     Possible values for config :
 
-        - field config : name,width,render,header,class,searchable,orderable,visible,type,hTooltip,tooltip  // only name is mandatory
+        - field config : name,width,render,header,class,searchable,orderable,visible,type,hTooltip,tooltip,searcher  // only name is mandatory
         - string => name config alone
 
     */
@@ -1033,7 +1228,8 @@ var dtEnhanced = function($){
             "searchable": true,
             "orderable" : true,
             "visible"   : true,
-            "type"      : "string"
+            "type"      : "string",
+            "searcher"  : null
         };
 
         // if not an object then it is the name only
@@ -1050,6 +1246,8 @@ var dtEnhanced = function($){
         }
 
         this.orderDataType = this.type;
+        
+        this.searcherInstance = dtEnhanced.searcherParser(this.searcher);
 
     };
 
@@ -1091,7 +1289,7 @@ var dtEnhanced = function($){
 
         },
 
-        bindCol : function(table,td){
+        bindCol : function(table,td,vd,set){
             
             
             if(this.tooltip){
@@ -1101,10 +1299,23 @@ var dtEnhanced = function($){
                 }else{
                     
                     var self = this;
-                    //delay it to wait tr to be fully populated (createdCell is triggered before createdRow)
-                    setTimeout(function(){
-                        $(td).attr("title",self.tooltip( $(td).closest("tr").data("dtec-set") , td));
-                    },500);
+
+                    $(td).attr("title",self.tooltip( set , td ));
+                }
+                
+            }
+            
+        },
+                
+        colClass : function(table,td,vd,set){
+       
+            if(this.class){
+                
+                if(typeof this.class ===  "string" ){
+                    $(td).addClass(this.class);
+                }else{
+                    var tdClass = this.class.apply(null,[set["name"],set]);
+                    $(td).addClass(tdClass);
                 }
                 
             }
@@ -1202,6 +1413,44 @@ var dtEnhanced = function($){
             }
 
         });
+        
+    };
+    
+    
+    
+    
+    
+    
+    
+    /*============== HELPER searcher parser ==============*/
+    
+    dtEnhanced.searcherParser = function(config){
+        
+        if(!config)
+            return null;
+        
+        if(config instanceof dtEnhanced.searcher){
+            return config;
+        }else if(typeof config === "string"){
+            
+            return new dtEnhanced.searcher.Text({});
+            
+        }else{
+            
+            var type = config.type;
+            
+            switch (type){
+                
+                case 'text' : 
+                    return new dtEnhanced.searcher.Text(config);
+                    break;
+                
+                default :
+                    return new dtEnhanced.searcher.Text(config);
+                    break;
+            }
+            
+        }
         
     };
     
