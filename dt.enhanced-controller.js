@@ -1187,6 +1187,54 @@ var dtEnhanced = function($){
 
 
 
+/*============== searcher.MINMAX ==============*/
+
+    dtEnhanced.searcher.MinMax = function(config){
+
+        dtEnhanced.searcher.apply(this,[config]);
+
+    };
+
+    dtEnhanced.searcher.MinMax.prototype = Object.create(dtEnhanced.searcher.prototype);
+
+    dtEnhanced.searcher.MinMax.prototype.__draw = function(){
+        var $elm = $("<div class='dtec-search-min-max' />");
+        $elm.append($("<input class='dtec-searcher-min' type='text'/>"));
+        $elm.append($("<span>&lt;</span>"));
+        $elm.append($("<input class='dtec-searcher-max' type='text'/>"));
+        return $elm;
+    };
+
+
+    dtEnhanced.searcher.MinMax.prototype.__bind = function($elm){
+        var self = this;
+
+        $elm.find("input").on( 'input',function(){
+            
+            var min = parseFloat($elm.find(".dtec-searcher-min").val().replace(",","."));
+            if(isNaN(min))
+                min = "";
+            
+            var max = parseFloat($elm.find(".dtec-searcher-max").val().replace(",","."));
+            if(isNaN(max))
+                max = "";
+            
+            self.valueChanged(min + ":" + max );
+        });
+    };
+
+    dtEnhanced.searcher.MinMax.prototype.__update = function($elments,value){
+        
+        var values = value.split(":");
+
+        $elments.find(".dtec-searcher-min").val(values[0]);
+        $elments.find(".dtec-searcher-max").val(values[1]);
+
+    };
+
+
+
+
 
 
 
@@ -1426,25 +1474,27 @@ var dtEnhanced = function($){
     
     dtEnhanced.searcherParser = function(config){
         
+       
         if(!config)
             return null;
         
         if(config instanceof dtEnhanced.searcher){
             return config;
-        }else if(typeof config === "string"){
-            
-            return new dtEnhanced.searcher.Text({});
-            
         }else{
             
-            var type = config.type;
+            if(typeof config === "string"){
+                var type = config;
+            }else{
+                var type = config.type;
+            }
             
             switch (type){
-                
                 case 'text' : 
                     return new dtEnhanced.searcher.Text(config);
                     break;
-                
+                case 'minmax' : 
+                    return new dtEnhanced.searcher.MinMax(config);
+                    break;
                 default :
                     return new dtEnhanced.searcher.Text(config);
                     break;
@@ -1631,3 +1681,4 @@ var dtEnhanced = function($){
     return dtEnhanced;
 
 }(jQuery);
+
