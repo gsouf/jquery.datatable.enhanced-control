@@ -411,6 +411,9 @@ var dtEnhanced = function($){
             // CLICK HANDLER
             $tr.mousedown(function(e){
 
+                if(event.which !== 1)
+                    return;
+
                 var $td = $(e.target);
                 if(!$td.is("td")){
                     $td = $td.closest("td");
@@ -421,7 +424,7 @@ var dtEnhanced = function($){
                     self.rowClicked(this,e.shiftKey);
 
                     if(e.shiftKey){
-                        e.preventDefault();
+                        e.preventDefault(); // Prevent text selection
                     }
                 }
             });
@@ -448,29 +451,34 @@ var dtEnhanced = function($){
         // returns true if the stat changed
         __makeRowSelection : function(row,largeSelection){
 
-            var self = this;
-
             if(this.selectable === false){
                 return false;
             }
+
+            var self = this;
+            var dtRow = this.dt.row(row);
 
             var changed = false;
 
             if(largeSelection){
                 if(this.lastSelection && this.$table.find(this.lastSelection)){
+                    
+                    var dtLast = this.dt.row(this.lastSelection);
+                    
                     var mode = $(row).hasClass("dtec-row-selected") ? -1 : 1;
 
-                    var s1 = this.lastSelection.index();
-                    var s2 = $(row).index();
+                    var s1 = dtLast.index();
+                    var s2 = dtRow.index();
 
                     var start = s1 > s2 ? s2 : s1;
                     var end   = s1 > s2 ? s1 : s2;
 
-                    $(this.$table).find("tr").slice( start + 1 , end + 2 ).each(function(){
-                        if(self.__selectRow(this,mode)){
+                    for(var i=start ; i<=end ; i++){
+                        if(self.__selectRow(this.dt.row(i).node(),mode)){
                             changed = true;
                         }
-                    });
+                    }
+
 
                 }else{
                     changed = this.__selectRow(row,0);
@@ -1224,6 +1232,8 @@ var dtEnhanced = function($){
     };
 
     dtEnhanced.searcher.MinMax.prototype.__update = function($elments,value){
+        
+        console.log(value);
         
         var values = value.split(":");
 
