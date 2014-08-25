@@ -1,10 +1,20 @@
 Simple jQuery Datatable Control
 ===============================
 
+
 This package offers you a simple way to use jquery.datatable. 
 It gives a fast access to selectable rows, allows to get the selection and adding items.
 
 **BETA VERSION** : feel free to repport any bug
+
+
+This readme IS NOT UP TO DATE 
+========================================
+
+ the library is updated every days. Please wait for a stable version.
+ 
+ 
+
 
 Requirement
 -----------
