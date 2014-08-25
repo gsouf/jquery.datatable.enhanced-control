@@ -94,7 +94,13 @@ $.fn.dataTableExt.aoFeatures.push( {
 
         // keep selection accross pagination / ordering / searching
         // it requires idField to be fill
-        keepSelection : true
+        keepSelection : true,
+
+        // delay for strating a search.
+        // it allows to avoid to trigger 1 search per key stroke. 
+        // Instead we want to the user to stop writting before starting a search.
+        // actually it is even more important for serverside table. It saves some server queries
+        searchDelay : 800
 
 
     }
@@ -155,7 +161,8 @@ var dtEnhanced = function($){
         "datatable"      : {},
         "title"          : null,
         "rowClass"       : null,
-        "searchBarTop"   : false
+        "searchBarTop"   : false,
+        "searchDelay"    : 600
     };
 
         
@@ -380,6 +387,19 @@ var dtEnhanced = function($){
                     
                     $col.append(searcher.draw()).appendTo($row);
 
+                    var delayedRedraw = (function(){
+                        var timer = null;
+                        return function(){
+                            clearTimeout(timer);
+                            timer = setTimeout(
+                                function(){
+                                    self.dt.draw();
+                                },
+                                self.searchDelay
+                            );
+                        };
+                    })();
+
                     searcher.addChangeHandler(
                         function ( fields,i ){
                             return function(value){
@@ -388,8 +408,10 @@ var dtEnhanced = function($){
 
                                 self.dt
                                     .column(i)
-                                    .search(value)
-                                    .draw();
+                                    .search(value);
+                                
+                                delayedRedraw();
+                            
                             };
                         }(fields,i)
                     );
@@ -1243,6 +1265,34 @@ var dtEnhanced = function($){
     };
 
 
+/*============== searcher.Number ==============*/
+
+    dtEnhanced.searcher.Number = function(config){
+
+        dtEnhanced.searcher.apply(this,[config]);
+
+    };
+
+    dtEnhanced.searcher.Number.prototype = Object.create(dtEnhanced.searcher.prototype);
+
+    dtEnhanced.searcher.Number.prototype.__draw = function(){
+        var $elm = $("<input type='number'/>");
+        return $elm;
+    };
+
+
+    dtEnhanced.searcher.Number.prototype.__bind = function($elm){
+        var self = this;
+
+        $elm.on( 'input',function(){
+            self.valueChanged($(this).val());
+        });
+    };
+
+    dtEnhanced.searcher.Number.prototype.__update = function($elments,value){
+        $elments.val(value);
+    };
+
 
 
 
@@ -1505,6 +1555,9 @@ var dtEnhanced = function($){
                 case 'minmax' : 
                     return new dtEnhanced.searcher.MinMax(config);
                     break;
+                case 'number' : 
+                    return new dtEnhanced.searcher.Number(config);
+                    break;
                 default :
                     return new dtEnhanced.searcher.Text(config);
                     break;
@@ -1691,4 +1744,3 @@ var dtEnhanced = function($){
     return dtEnhanced;
 
 }(jQuery);
-
