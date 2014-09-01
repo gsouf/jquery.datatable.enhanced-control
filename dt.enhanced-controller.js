@@ -1321,7 +1321,7 @@ var dtEnhanced = function($){
 
     Possible values for config :
 
-        - field config : name,width,render,header,class,searchable,orderable,visible,type,hTooltip,tooltip,searcher  // only name is mandatory
+        - field config : name,width,render,header,class,searchable,orderable,visible,type,hTooltip,tooltip,searcher,noSelect  // only name is mandatory
         - string => name config alone
 
     */
@@ -1337,7 +1337,8 @@ var dtEnhanced = function($){
             "orderable" : true,
             "visible"   : true,
             "type"      : "string",
-            "searcher"  : null
+            "searcher"  : null,
+            "noSelect"  : false
         };
 
         // if not an object then it is the name only
@@ -1413,6 +1414,11 @@ var dtEnhanced = function($){
                 
             }
             
+            
+            if(this.noSelect){
+                $(td).addClass("dtec-noselect");
+            }
+            
         },
                 
         colClass : function(table,td,vd,set){
@@ -1475,6 +1481,7 @@ var dtEnhanced = function($){
     dtEnhanced.detailsControlField = function(config){
 
         dtEnhanced.field.apply(this,[config]);
+        this.noSelect = true;
         this.width   = config.width || ( config.render ? null : 15);
         this.content = config.content || "<div class='dtec-details-control'></div>";
 
@@ -1490,7 +1497,7 @@ var dtEnhanced = function($){
 
         var self = this;
 
-        $(td).addClass("dtec-noselect");
+        
 
         $(td).click(function(){
 
@@ -1585,8 +1592,13 @@ var dtEnhanced = function($){
         };
         
         for(var i in overides){
-            var col = getColumnByName(i);  
-            $.extend(col,overides[i]);
+            var col = getColumnByName(i);
+            if(col)
+                $.extend(col,overides[i]);
+            else{
+                columns.push(overides[i]);
+                overides[i].name = i;
+            }
         }
         
         return columns;
