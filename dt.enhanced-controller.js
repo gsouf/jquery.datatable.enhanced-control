@@ -70,7 +70,7 @@ $.fn.dataTableExt.aoFeatures.push( {
             {   
                 name        :"id",
                 width       :20,
-                render      :function(value,set,items,data){return value;},
+                render      :function(value,set,items,dtec){return value;},
                 header      :"#",
                 class       :"custom-class",
                 searchable  : true,
@@ -196,6 +196,10 @@ var dtEnhanced = function($){
                                 
                             case "+":
                                 finalFields[i] = new dtEnhanced.detailsControlField(fields[i]);
+                                break;
+                                
+                            case "action":
+                                finalFields[i] = new dtEnhanced.actionField(fields[i]);
                                 break;
 
                             default:
@@ -1082,7 +1086,9 @@ var dtEnhanced = function($){
         "processing"   : true
     };
 
-    
+    dtEnhanced.Servertable.prototype.reload = function(){
+        this.dt.draw();
+    }
 
     dtEnhanced.Servertable.prototype.show = function(elm,config){
         config = config || {};
@@ -1388,11 +1394,28 @@ var dtEnhanced = function($){
     
             var $div = $("<div/>");
     
+            var renderedText = "";
+    
             // fill it
             if(this.render)
-                $div.html(this.render(set[this.name],set,table.getItems));
-            else
-                $div.html(set[this.name]);
+                renderedText = this.render(set[this.name],set,table.getItems,table);
+            else{
+                
+                if( -1 === this.name.indexOf(".")){
+                    renderedText = set[this.name];
+                }else{
+                    var nameList = this.name.split(".");
+                    var value = set;
+                    
+                    while(nameList.length > 0 && (value = value[nameList.shift()]));
+                    
+                    renderedText = value;
+                    
+                }
+                
+            }
+            
+            $div.html(renderedText);
 
             return $div;
 
@@ -1461,6 +1484,44 @@ var dtEnhanced = function($){
         var $div = $("<div/>");
         $div.append("<div class='dtec-select-field' />");
         return $div;
+    };
+    
+    
+    
+/*============== ACTION FIELD ==============*/
+
+
+    /**
+     * additional params : action : function(dataset,table)
+     */
+    dtEnhanced.actionField = function(config){
+
+        this.noSelect = true;
+        this.orderable = false;
+
+        dtEnhanced.field.apply(this,[config]);
+        
+        if(!this.action){
+            this.action=function(){};
+        }
+        
+        
+
+    };
+
+    dtEnhanced.actionField.prototype = Object.create(dtEnhanced.field.prototype);
+
+
+    dtEnhanced.actionField.prototype.bindCol = function(table,td){
+
+        dtEnhanced.field.prototype.bindCol.apply(this,[table,td]);
+
+        var self = this;
+        $(td).click(function(){
+            var set = $(this).closest("tr").data("dtec-set");
+            self.action(set,table);
+        });
+        
     };
     
     
