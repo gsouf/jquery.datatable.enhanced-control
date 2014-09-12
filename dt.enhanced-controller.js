@@ -222,6 +222,30 @@ var dtEnhanced = function($){
         addDrawHandler : function(handler){
             this.drawHandler.push(handler);
         },
+                
+        findColumnByName : function(name){
+
+            for(var i=0;i<this.columns.length;i++){
+                if(this.columns[i].name == name)
+                    return this.columns[i];
+            }
+            
+        },
+                
+        findColumnsByPattern : function(pattern){
+            
+            var columnsFinal = [];
+            
+            for(var i=0;i<this.columns.length;i++){
+                
+                if(this.columns[i].name && this.columns[i].name.match(pattern))
+                    columnsFinal.push(this.columns[i]);
+            }
+            
+            return columnsFinal;
+            
+        },
+        
         
         addItem : function(set){
 
@@ -359,7 +383,6 @@ var dtEnhanced = function($){
                     "createdCell"   : createdCallback
                 };
 
-                console.log(definition);
                 
                 this.columns[i]._postInitDtColumnDef(this,definition);
                 
@@ -407,9 +430,6 @@ var dtEnhanced = function($){
                     searcher.addChangeHandler(
                         function ( fields,i ){
                             return function(value){
-
-                             
-
                                 self.dt
                                     .column(i)
                                     .search(value);
@@ -1142,8 +1162,6 @@ var dtEnhanced = function($){
 
             this.cloneList = this.cloneList.add(cloneElement);
 
-            console.log(this.cloneList);
-
             this.__bind(cloneElement);
 
             return cloneElement;
@@ -1176,6 +1194,9 @@ var dtEnhanced = function($){
             }
         },
 
+        lock:function(locked){
+            this.__lock(locked);
+        },
 
 
         // OVERIDES 
@@ -1185,7 +1206,15 @@ var dtEnhanced = function($){
 
         __bind : function(){},
 
-        __update : function(){}
+        __update : function(){
+            console.error("Children of searcher must overide __update mehtod");
+        },
+
+        __lock : function(){
+            var selector = "input";
+            console.log( this.cloneList.add(this.$drawElement).find(selector).addBack(selector) );
+            this.cloneList.add(this.$drawElement).find(selector).addBack(selector).attr("readonly","readonly");
+        }
 
 
     };
@@ -1373,6 +1402,27 @@ var dtEnhanced = function($){
          */
         _postInitDtColumnDef : function(table,definition){
             return definition;
+        },
+
+        searchValue : function(value){
+            var s = this.searcherInstance;
+            if(s){
+                s.valueChanged(value);
+            }
+        },
+
+        lockSearch : function(locked){
+
+            var s = this.searcherInstance;
+            if(s){
+                
+                if(locked !== true){
+                    locked = false;
+                }
+                
+                s.lock(locked);
+            }
+            
         },
 
         makeHeaderCol : function(table){
