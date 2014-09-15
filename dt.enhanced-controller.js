@@ -428,8 +428,13 @@ var dtEnhanced = function($){
                     })();
 
                     searcher.addChangeHandler(
+                            
                         function ( fields,i ){
                             return function(value){
+
+                                if(value===null)
+                                    value="";
+                                
                                 self.dt
                                     .column(i)
                                     .search(value);
@@ -727,9 +732,7 @@ var dtEnhanced = function($){
                     return true;
                 }else if( selectionType !== -1 ){
                     var self = this;
-                    this.getSelectedRows(true).each(function(i,item){
-                        self.__rowSetSelection($(item),false);
-                    });
+                    this.clearSelection();
                     this.__rowSetSelection($(row),true);
                     return true;
                 }
@@ -1210,10 +1213,13 @@ var dtEnhanced = function($){
             console.error("Children of searcher must overide __update mehtod");
         },
 
-        __lock : function(){
+        __lock : function(locked){
             var selector = "input";
-            console.log( this.cloneList.add(this.$drawElement).find(selector).addBack(selector) );
-            this.cloneList.add(this.$drawElement).find(selector).addBack(selector).attr("readonly","readonly");
+            
+            if(locked)
+                this.cloneList.add(this.$drawElement).find(selector).addBack(selector).attr("readonly","readonly");
+            else
+                this.cloneList.add(this.$drawElement).find(selector).addBack(selector).removeAttr("readonly");
         }
 
 
