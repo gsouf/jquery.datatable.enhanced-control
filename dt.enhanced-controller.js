@@ -330,7 +330,7 @@ var dtEnhanced = function($){
             var fields = this.columns;
 
             // PREPARE THE STRUCTURE
-            var $table = $('<table class="table table-striped table-bordered"/>');
+            var $table = $('<table class="table table-bordered"/>');
             var $thead = $("<thead/>");
             var $tbody  = $("<tbody/>");
             $table.append($thead);
@@ -1421,8 +1421,9 @@ var dtEnhanced = function($){
 
             var s = this.searcherInstance;
             if(s){
-                
-                if(locked !== true){
+                if(undefined == locked ){
+                    locked = true
+                }else if(locked !== true){
                     locked = false;
                 }
                 
@@ -1552,8 +1553,8 @@ var dtEnhanced = function($){
      */
     dtEnhanced.actionField = function(config){
 
-        this.noSelect = true;
-        this.orderable = false;
+        config.noSelect = true;
+        config.orderable = false;
 
         dtEnhanced.field.apply(this,[config]);
         
@@ -1570,6 +1571,7 @@ var dtEnhanced = function($){
 
     dtEnhanced.actionField.prototype.bindCol = function(table,td){
 
+        
         dtEnhanced.field.prototype.bindCol.apply(this,[table,td]);
 
         var self = this;
