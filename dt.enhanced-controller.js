@@ -201,6 +201,11 @@ var dtEnhanced = function($){
                             case "action":
                                 finalFields[i] = new dtEnhanced.actionField(fields[i]);
                                 break;
+                            
+                            case "actionList":
+                                finalFields[i] = new dtEnhanced.actionListField(fields[i]);
+                                break;
+
 
                             default:
                                 finalFields[i] = new dtEnhanced.field(fields[i]);
@@ -1529,7 +1534,7 @@ var dtEnhanced = function($){
 
     dtEnhanced.checkboxField = function(config){
 
-
+        config.orderable = false;
         dtEnhanced.field.apply(this,[config]);
         this.width = 15;
 
@@ -1579,6 +1584,125 @@ var dtEnhanced = function($){
             var set = $(this).closest("tr").data("dtec-set");
             self.action(set,table);
         });
+        
+    };
+    
+    
+    
+    
+/*============== ACTIONLIST FIELD ==============*/
+
+
+    /**
+     * additional params : 
+     * 
+     * actions : {
+     * 
+     *   "actionName" : {
+     *      "text" : "Action name",
+     *      "tooltip" : "this triggers an action",
+     *      "action" :  function(dataset,table){...},
+     *      "iconCls  : "someIconClass"
+     *   },
+     *   "text" : "Actions",
+     *   "iconCls" : "someIconClass",
+     *   "tooltip" : "Show actions"
+     * 
+     * }
+     */
+    dtEnhanced.actionListField = function(config){
+
+        config.noSelect = true;
+        config.orderable = false;
+
+        dtEnhanced.field.apply(this,[config]);
+        
+        if(!this.action){
+            this.action=function(){};
+        }
+        
+        
+
+    };
+
+    dtEnhanced.actionListField.prototype = Object.create(dtEnhanced.field.prototype);
+
+
+    dtEnhanced.actionListField.prototype.makeBodyCol = function(table,set){
+        var $openner = $("<div class='dtec-action-list-openner'/>");
+        
+        var $div = $("<div/>");
+        
+        $div.append($openner);
+        
+        $openner.html(this.text);
+        
+        return $div;
+    };
+    
+
+    dtEnhanced.actionListField.prototype.bindCol = function(table,td){
+
+        
+        dtEnhanced.field.prototype.bindCol.apply(this,[table,td]);
+
+        var self = this;
+        $(td).find(".dtec-action-list-openner").click(function(e){
+            var $selfTd = $(this).closest("td");
+            
+            if($selfTd.hasClass("dtec-action-list-openned")){
+                return;
+            }
+            
+            
+            // Execute it after a veryshort timeout. 
+            // Thus if there is an already openned menu then it will close before we stop propagation
+            setTimeout(function(){
+                e.stopPropagation();
+                
+                // SET IT OPENNED
+                $selfTd.addClass("dtec-action-list-openned");
+
+
+                // SHOW ACTIONS
+                var $actions = $("<ul class='dtec-action-list-actions'/>");
+                $selfTd.append($actions);
+
+                for(var i in self.actions){
+                    var $li = $("<li/>");
+                    $li.html(self.actions[i].text);
+                    $actions.append($li);
+                    $li.click(function(i){
+                        return function(){
+                            var set = $selfTd.closest("tr").data("dtec-set");
+                            self.actions[i].action(set,table);
+                        };
+                    }(i));
+                }
+
+
+
+                // PREPARE TO HIDE
+                var unbind = function(){
+                    $selfTd.removeClass("dtec-action-list-openned");
+                    $selfTd.find(".dtec-action-list-actions").remove();
+                    $(document).off("click" , unbind);
+                };
+
+                $(document).on("click" , unbind);
+            },5);
+            
+            
+            
+            
+            
+            
+            
+        });
+        
+        $(td).addClass("dtec-action-list");
+        
+        
         
     };
     
