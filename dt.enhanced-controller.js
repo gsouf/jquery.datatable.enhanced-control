@@ -77,7 +77,8 @@ $.fn.dataTableExt.aoFeatures.push( {
                 orderable   : true,
                 visible     : true,
                 type        : "string",
-                searcher    : true
+                searcher    : true,
+                __dtIndex     : 1  // set automatically, should be set manually
                 
             },
             
@@ -146,6 +147,44 @@ var dtEnhanced = function($){
         if(this.onDraw){
             this.addDrawHandler(this.onDraw);
         }
+        
+        var self = this;
+        // Handler for row grouping
+        this.addDrawHandler(function(){
+            
+            if(this.rowGrouping){
+                
+         
+                
+                var api = self.dt;
+                var rows = api.rows( {page:'current'} ).nodes();
+                var last=null;
+                
+                var c = this.findColumnByName(this.rowGrouping);
+
+                api.column(c.__dtIndex, {page:'current'} ).data().each( function ( group, i ) {
+                    if ( last !== group ) {
+                        
+                        var text = null;
+                        var $row = $(rows).eq( i );
+                        
+                        
+                        if(self.rowGroupingLabel){
+                            text = self.rowGroupingLabel.apply(null,[group]);
+                        }else{
+                            text = group;
+                        }
+                        
+                        $row.before(
+                            '<tr class="dtec-row-group"><td colspan="5">'+text+'</td></tr>'
+                        );
+                        last = group;
+                    }
+                } );
+
+            }
+            
+        });
 
     };
     
@@ -162,7 +201,9 @@ var dtEnhanced = function($){
         "title"          : null,
         "rowClass"       : null,
         "searchBarTop"   : false,
-        "searchDelay"    : 600
+        "searchDelay"    : 600,
+        "rowGrouping"    : null,
+        "rowGroupingLabel" : null
     };
 
         
@@ -172,6 +213,8 @@ var dtEnhanced = function($){
         initFields: function(fields){
 
             var finalFields = [];
+
+            var cIndex = 0;
 
             for(var i in fields){
                 if(fields[i] instanceof dtEnhanced.field ){
@@ -214,6 +257,10 @@ var dtEnhanced = function($){
                         }
                     }
                 }
+                
+                finalFields[i].__dtIndex = cIndex;
+                cIndex++;
+                
             }
 
             return finalFields;
