@@ -196,7 +196,7 @@ var dtEnhanced = function($){
         "onDraw"         : null,
         "childContent"   : null,
         "tableClass"     : null,
-        "keepSelection"  : true,
+        "keepSelection"  : false,
         "datatable"      : {},
         "title"          : null,
         "rowClass"       : null,
@@ -535,7 +535,7 @@ var dtEnhanced = function($){
             
             // STORE THE SET TO FIND IT LATER
             $tr.data("dtec-set",set);
-            
+
             
             // SET THE CUSTOM CLASS
             if(this.rowClass){
@@ -559,26 +559,32 @@ var dtEnhanced = function($){
             }
 
             var self = this;
-            var dtRow = this.dt.row(row);
 
             var changed = false;
 
             if(largeSelection){
                 if(this.lastSelection && this.$table.find(this.lastSelection)){
-                    
-                    var dtLast = this.dt.row(this.lastSelection);
-                    
-                    var mode = $(row).hasClass("dtec-row-selected") ? -1 : 1;
 
-                    var s1 = dtLast.index();
-                    var s2 = dtRow.index();
+                    var $lastRow = this.lastSelection;
+                    var $currRow = $(row);
+                    var $table = $currRow.closest("table");
+                    
+                    var mode = $currRow.hasClass("dtec-row-selected") ? -1 : 1;
+
+                    var s1 = $lastRow.index();
+                    var s2 = $currRow.index();
 
                     var start = s1 > s2 ? s2 : s1;
                     var end   = s1 > s2 ? s1 : s2;
 
+
                     for(var i=start ; i<=end ; i++){
-                        if(self.__selectRow(this.dt.row(i).node(),mode)){
-                            changed = true;
+                        var $rowToSelect = $table.find("tbody>tr:eq("+i+")");
+
+                        if($rowToSelect.attr("role")=="row") {
+                            if (self.__selectRow($rowToSelect, mode)) {
+                                changed = true;
+                            }
                         }
                     }
 
@@ -831,7 +837,8 @@ var dtEnhanced = function($){
 
             var countTotal  = this.countSelection();
             var countVisible= this.getSelectedRows().length;
-            
+
+            console.log(this.countSelection());
         
             
             var words = "";
@@ -858,8 +865,9 @@ var dtEnhanced = function($){
                     length++;
                 }
                 return length;
-            }else
+            }else {
                 return this.getSelectedRows().length;
+            }
         },
 
         /**
@@ -872,7 +880,7 @@ var dtEnhanced = function($){
                 var $rows = $(this.$table.dataTable().fnGetNodes());
             }else
                 var $rows = this.$table.find(".dtec-row-selected");
-            
+
             return $rows;
         },
 
@@ -995,6 +1003,15 @@ var dtEnhanced = function($){
         
     };
     
+    dtEnhanced.Datatable.prototype._e_removeItem = function(item){
+        var i = this.data[this.itemsRoot].indexOf(item);
+
+        if(i>=0)
+            this.data[this.itemsRoot].splice(i,1);
+
+        return true;
+    };
+
     dtEnhanced.Datatable.prototype._e_clear = function(){
         if(this.itemsRoot){
             this.data[this.itemsRoot] = [];
@@ -1163,12 +1180,17 @@ var dtEnhanced = function($){
 
     dtEnhanced.Servertable.prototype.reload = function(){
         this.dt.draw();
-    }
+    };
 
     dtEnhanced.Servertable.prototype.show = function(elm,config){
         config = config || {};
         config.serverSide = true;
         config.ajax = this.ajax;
+        
+        if(!this.autoload){
+            config.iDeferLoading = 0;
+        }
+        
         config.processing = config.processing || this.processing;
         
         dtEnhanced.table.prototype.show.apply(this,[elm,config]);
@@ -1609,7 +1631,7 @@ var dtEnhanced = function($){
         config.orderable = false;
 
         dtEnhanced.field.apply(this,[config]);
-        
+
         if(!this.action){
             this.action=function(){};
         }
@@ -1621,16 +1643,36 @@ var dtEnhanced = function($){
     dtEnhanced.actionField.prototype = Object.create(dtEnhanced.field.prototype);
 
 
-    dtEnhanced.actionField.prototype.bindCol = function(table,td){
+    dtEnhanced.actionField.prototype.bindCol = function(table,td,vd,set){
 
         
-        dtEnhanced.field.prototype.bindCol.apply(this,[table,td]);
+        dtEnhanced.field.prototype.bindCol.apply(this,[table,td,vd,set]);
 
-        var self = this;
-        $(td).click(function(){
-            var set = $(this).closest("tr").data("dtec-set");
-            self.action(set,table);
-        });
+
+        var enabled;
+
+        if(this.actionEnabled !== undefined ){
+
+            if(typeof this.actionEnabled == "function"){
+                enabled = this.actionEnabled.apply(null,[table,td,vd,set]);
+            }else{
+                enabled = this.actionEnabled;
+            }
+
+        }
+
+
+        if(enabled){
+            var self = this;
+            $(td).click(function(){
+                var set = $(this).closest("tr").data("dtec-set");
+                self.action(set,table,td);
+            });
+        }else{
+            $(td).addClass("action-disabled");
+        }
+
+
         
     };
     
