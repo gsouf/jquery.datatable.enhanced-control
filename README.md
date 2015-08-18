@@ -1,3 +1,6 @@
+This project is abandoned because of the weakness of datatable. I decided to make another table library that is urrently close sourced until the release.
+
+
 Simple jQuery Datatable Control
 ===============================
 
